@@ -16,6 +16,7 @@ end_of_line = crlf
 insert_final_newline = false
 
 #### .NET Code Actions ####
+dotnet_diagnostic.SA1636.severity = none
 
 # Type members
 dotnet_hide_advanced_members = false
