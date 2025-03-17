@@ -11,6 +11,10 @@ namespace PL
 {
     using PL.Controllers;
     using Serilog;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// The entry point class for the GymBuddy application.
@@ -35,6 +39,14 @@ namespace PL
 
             // Додаємо сервіси
             builder.Services.AddControllersWithViews();
+            // Додаємо підтримку сесій
+            builder.Services.AddDistributedMemoryCache(); // Використовуємо пам'ять для збереження сесій
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Тривалість сесії
+                options.Cookie.HttpOnly = true; // Захист від XSS-атак
+                options.Cookie.IsEssential = true; // Необхідно для роботи в режимі GDPR
+            });
 
             /// <summary>
             /// The web application instance.
@@ -53,10 +65,11 @@ namespace PL
 
             app.UseRouting();
             app.UseAuthorization();
+            app.UseSession();
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Account}/{action=Login}/{id?}");
 
             // Логування запуску застосунку
             Log.Information("Застосунок запущено");
