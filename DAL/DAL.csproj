@@ -30,6 +30,11 @@
 
   <ItemGroup>
     <None Include="C:\Takemikazuchi\Програмна інженерія\WebApplication1\WebApplication1\DAL\.editorconfig" />
+    <None Include="C:\Users\Andriana\source\repos\GymBuddy1.0\DAL\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\Andriana\source\repos\GymBuddy1.0\DAL\.editorconfig" />
   </ItemGroup>
 
 </Project>
