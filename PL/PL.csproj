@@ -32,7 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DAL\DAL.csproj" />
+</ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BLL\BLL.csproj" />
-  </ItemGroup>
+</ItemGroup>
+
 
 </Project>

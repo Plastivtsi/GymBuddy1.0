@@ -1,24 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DAL.Models
+﻿public class User
 {
-    public class User
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public double Weight { get; set; }
-        public double Height { get; set; }
-        public bool Role { get; set; } // true = Admin, false = Non-Admin
-
-        // Навігаційні властивості
-        public List<Training> Trainings { get; set; }
-        public List<Friendship> FriendshipsAsUser1 { get; set; }
-        public List<Friendship> FriendshipsAsUser2 { get; set; }
-    }
+    public int Id { get; set; }
+#pragma warning disable SA1206 // Declaration keywords should follow order
+    public required string UserName { get; set; }
+#pragma warning restore SA1206 // Declaration keywords should follow order
+#pragma warning disable SA1206 // Declaration keywords should follow order
+    public required string Email { get; set; }
+#pragma warning restore SA1206 // Declaration keywords should follow order
+#pragma warning disable SA1206 // Declaration keywords should follow order
+    public required string Password { get; set; }
+#pragma warning restore SA1206 // Declaration keywords should follow order
+    public double Weight { get; set; }
+    public double Height { get; set; }
+    public bool Role { get; set; } // true = Admin, false = Non-Admin
 }
