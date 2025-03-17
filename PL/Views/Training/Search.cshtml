@@ -1,0 +1,24 @@
+﻿@model IEnumerable<DAL.Models.Training>
+
+<h2>Пошук тренувань</h2>
+
+<form method="get" asp-controller="Training" asp-action="Search">
+    <input type="text" name="name" placeholder="Назва тренування" />
+    <input type="date" name="date" />
+    <input type="number" name="userId" placeholder="ID користувача" />
+    <button type="submit">Пошук</button>
+</form>
+
+@if (Model != null && Model.Any())
+{
+    <ul>
+        @foreach (var training in Model)
+        {
+            <li>@training.Name - @training.Date.ToShortDateString() - User ID: @training.UserId</li>
+        }
+    </ul>
+}
+else
+{
+    <p>Тренування не знайдені.</p>
+}
