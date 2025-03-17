@@ -26,4 +26,8 @@
     <None Include="C:\Takemikazuchi\Програмна інженерія\WebApplication1\WebApplication1\PL\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BLL\BLL.csproj" />
+  </ItemGroup>
+
 </Project>
