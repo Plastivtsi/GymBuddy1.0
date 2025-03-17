@@ -236,6 +236,11 @@ dotnet_style_operator_placement_when_wrapping = beginning_of_line
 tab_width = 4
 indent_size = 4
 
+end_of_line = crlf
+dotnet_style_coalesce_expression = true:suggestion
+
+
+
 # SA1004: Documentation lines should begin with single space
 dotnet_diagnostic.SA1004.severity = none
 
@@ -254,8 +259,6 @@ dotnet_diagnostic.SA1105.severity = none
 # SA1119: Statement should not use unnecessary parenthesis
 dotnet_diagnostic.SA1119.severity = none
 
-# SA1128: Put constructor initializers on their own line
-dotnet_diagnostic.SA1128.severity = none
 
 # SA1122: Use string.Empty for empty strings
 dotnet_diagnostic.SA1122.severity = none
@@ -269,11 +272,6 @@ dotnet_diagnostic.SA1132.severity = none
 # SA1139: Use literal suffix notation instead of casting
 dotnet_diagnostic.SA1139.severity = none
 
-# SA1202: Elements should be ordered by access
-dotnet_diagnostic.SA1202.severity = none
-
-# SA1210: Using directives should be ordered alphabetically by namespace
-dotnet_diagnostic.SA1210.severity = none
 
 # SA1211: Using alias directives should be ordered alphabetically by alias name
 dotnet_diagnostic.SA1211.severity = none
@@ -286,6 +284,10 @@ dotnet_diagnostic.SA1214.severity = none
 
 # SA1217: Using static directives should be ordered alphabetically
 dotnet_diagnostic.SA1217.severity = none
+
+
+# SA1402: File may only contain a single type
+dotnet_diagnostic.SA1402.severity = none
 
 # SA1502: Element should not be on a single line
 dotnet_diagnostic.SA1502.severity = none
@@ -323,11 +325,7 @@ dotnet_diagnostic.SA1633.severity = none
 # SA1648: inheritdoc should be used with inheriting class
 dotnet_diagnostic.SA1648.severity = none
 
-# SA1200: Using directives should be placed correctly
-dotnet_diagnostic.SA1200.severity = none
 
-# SA1201: Elements should appear in the correct order
-dotnet_diagnostic.SA1201.severity = none
+# SA1210: Using directives should be ordered alphabetically by namespace
+dotnet_diagnostic.SA1210.severity = none
 
-# SA1402: File may only contain a single type
-dotnet_diagnostic.SA1402.severity = none

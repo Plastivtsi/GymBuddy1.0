@@ -231,8 +231,12 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
-# SA1600: Elements should be documented
-dotnet_diagnostic.SA1600.severity = none
+
+[*.{cs,vb}]
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+tab_width = 4
+indent_size = 4
+
 
 # SA1004: Documentation lines should begin with single space
 dotnet_diagnostic.SA1004.severity = none
@@ -249,8 +253,7 @@ dotnet_diagnostic.SA1104.severity = none
 # SA1105: Query clauses spanning multiple lines should begin on own line
 dotnet_diagnostic.SA1105.severity = none
 
-# SA1128: Put constructor initializers on their own line
-dotnet_diagnostic.SA1128.severity = warning
+
 
 # SA1119: Statement should not use unnecessary parenthesis
 dotnet_diagnostic.SA1119.severity = none
@@ -267,8 +270,13 @@ dotnet_diagnostic.SA1132.severity = none
 # SA1139: Use literal suffix notation instead of casting
 dotnet_diagnostic.SA1139.severity = none
 
-# SA1202: Elements should be ordered by access
-dotnet_diagnostic.SA1202.severity = none
+
+# SA1200: Using directives should be placed correctly
+dotnet_diagnostic.SA1200.severity = none
+
+# SA1201: Elements should appear in the correct order
+dotnet_diagnostic.SA1201.severity = none
+
 
 # SA1210: Using directives should be ordered alphabetically by namespace
 dotnet_diagnostic.SA1210.severity = none
@@ -285,6 +293,11 @@ dotnet_diagnostic.SA1214.severity = none
 # SA1217: Using static directives should be ordered alphabetically
 dotnet_diagnostic.SA1217.severity = none
 
+
+# SA1402: File may only contain a single type
+dotnet_diagnostic.SA1402.severity = none
+
+
 # SA1502: Element should not be on a single line
 dotnet_diagnostic.SA1502.severity = none
 
@@ -293,6 +306,11 @@ dotnet_diagnostic.SA1515.severity = none
 
 # SA1516: Elements should be separated by blank line
 dotnet_diagnostic.SA1516.severity = none
+
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
 
 # SA1601: Partial elements should be documented
 dotnet_diagnostic.SA1601.severity = none
@@ -318,11 +336,3 @@ dotnet_diagnostic.SA1633.severity = none
 # SA1648: inheritdoc should be used with inheriting class
 dotnet_diagnostic.SA1648.severity = none
 
-# SA1200: Using directives should be placed correctly
-dotnet_diagnostic.SA1200.severity = none
-
-# SA1201: Elements should appear in the correct order
-dotnet_diagnostic.SA1201.severity = none
-
-# SA1402: File may only contain a single type
-dotnet_diagnostic.SA1402.severity = none
