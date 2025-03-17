@@ -31,4 +31,8 @@
     <EditorConfigFiles Remove="C:\Users\Andriana\source\repos\GymBuddy1.0\PL\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BLL\BLL.csproj" />
+  </ItemGroup>
+
 </Project>
