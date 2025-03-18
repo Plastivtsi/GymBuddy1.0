@@ -44,7 +44,7 @@ namespace BLL.Models
                 }
 
                 using (var insertCommand = new NpgsqlCommand(
-                    "INSERT INTO \"Users\" (\"Name\", \"Password\", \"Email\", \"Role\") VALUES (@Nickname, @Password, @Email, @IsAdmin)", connection))
+                    "INSERT INTO \"Users\" (\"Name\", \"Password\", \"Email\", \"Role\", \"Weight\", \"Height\") VALUES (@Nickname, @Password, @Email, @IsAdmin, 50, 170)", connection))
                 {
                     insertCommand.Parameters.AddWithValue("@Nickname", nickname);
                     insertCommand.Parameters.AddWithValue("@Password", password);
