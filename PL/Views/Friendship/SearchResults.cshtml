@@ -1,0 +1,30 @@
+﻿@{
+    ViewBag.Title = "Search Results";
+}
+
+<h2>Результати пошуку</h2>
+
+<form method="get" action="@Url.Action("Search", "Friendship")">
+    <input type="text" name="name" placeholder="Пошук друга за ім'ям" />
+    <button type="submit">Пошук</button>
+</form>
+
+@if (Model.Count > 0)
+{
+    <h3>Користувач знайдений:</h3>
+    <ul>
+        @foreach (var user in Model)
+        {
+            <li>
+                @user.Name
+                @* "Обробити кнопку " *@
+                <button class="add-friend-btn" data-user-id="@user.Id">Запит у друзі</button>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>@ViewBag.Message</p>
+    //<p>Не знайдено користувача з таким ім'ям.</p>
+}

@@ -26,6 +26,8 @@ namespace PL.Controllers
                 .WriteTo.Seq("http://localhost:5341")
                 .Enrich.FromLogContext()
                 .CreateLogger();
+
+
         }
     }
 }

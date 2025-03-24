@@ -4,100 +4,92 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using Npgsql;
+using DAL.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+using BLL.Models.Interfaces;
 
 namespace BLL.Models
 {
-    public class Autorization
+    public class Autorization : ICreateUser
     {
-        private const string ConnectionString = "Host=breakdatabase.postgres.database.azure.com;Port=5432;Database=GymBuddy;Username=postgres;Password=12345678bp!";
         private static int currentUserId;
         public static int CurrentUserId { get => currentUserId; set => currentUserId = value; }
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<Autorization> _logger;
 
-        public bool Register(string nickname, string email, string password)
+        public Autorization(ApplicationDbContext context, ILogger<Autorization> logger)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger;
+        }
+
+        public virtual async Task<DAL.Models.User> CreateNewUser(string nickname, string email, string password)
         {
             if (string.IsNullOrWhiteSpace(nickname) ||
-                string.IsNullOrWhiteSpace(email) ||
-                string.IsNullOrWhiteSpace(password))
+                   string.IsNullOrWhiteSpace(email) ||
+                   string.IsNullOrWhiteSpace(password))
             {
-                throw new ArgumentException("All fields must be filled.");
+                throw new ArgumentException("Всі поля повинні бути заповненими");
             }
 
-            if (!email.Contains("@"))
+            var userExists = await _context.Users.AnyAsync(u => u.Name == nickname);
+            if (userExists)
             {
-                throw new ArgumentException("Invalid email format.");
+                throw new Exception("Такий користувач вже існує");
+                _logger.LogWarning("Користувач {Nickname} вже існує", nickname);
             }
 
-            using (var connection = new NpgsqlConnection(ConnectionString))
+            int maxId = _context.Users.Any() ? _context.Users.Max(e => e.Id) : 0;
+
+            var user = new DAL.Models.User
             {
-                connection.Open();
-
-                using (var checkCommand = new NpgsqlCommand("SELECT COUNT(*) FROM \"Users\" WHERE \"Name\" = @Nickname", connection))
-                {
-                    checkCommand.Parameters.AddWithValue("@Nickname", nickname);
-                    var userExists = (long)checkCommand.ExecuteScalar() > 0;
-
-                    if (userExists)
-                    {
-                        throw new InvalidOperationException("User with this nickname already exists.");
-                    }
-                }
-
-                using (var insertCommand = new NpgsqlCommand(
-                    "INSERT INTO \"Users\" (\"Name\", \"Password\", \"Email\", \"Role\", \"Weight\", \"Height\") VALUES (@Nickname, @Password, @Email, @IsAdmin, 50, 170)", connection))
-                {
-                    insertCommand.Parameters.AddWithValue("@Nickname", nickname);
-                    insertCommand.Parameters.AddWithValue("@Password", password);
-                    insertCommand.Parameters.AddWithValue("@Email", email);
-                    insertCommand.Parameters.AddWithValue("@IsAdmin", false);
-
-                    var rowsAffected = insertCommand.ExecuteNonQuery();
-                    if (rowsAffected > 0)
-                    {
-                        Console.WriteLine($"User registered: {nickname}, {email}");
-                        return true;
-                    }
-                }
+                Id = maxId + 1,
+                Name = nickname,
+                Email = email,
+                Password = password,
+                Weight = 50,
+                Height = 150,
+                Role = false
+            };
+            try
+            {
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Користувач {Nickname} успішно створений.", nickname);
+                return user;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Помилка при реєстрації користувача {Nickname}", nickname);
+                throw new Exception($"Помилка при рєстрації: {ex.Message}");
+            }
         }
 
         public bool Login(string nickname, string password)
         {
             if (string.IsNullOrWhiteSpace(nickname) || string.IsNullOrWhiteSpace(password))
             {
-                throw new ArgumentException("Both fields must be filled.");
+                throw new ArgumentException("Обидва поля повинні бути заповнені.");
             }
 
-            using (var connection = new NpgsqlConnection(ConnectionString))
+            var user = _context.Users.FirstOrDefault(u => u.Name == nickname);
+            if (user == null)
             {
-                connection.Open();
-
-                using (var checkCommand = new NpgsqlCommand("SELECT \"Id\", \"Password\" FROM \"Users\" WHERE \"Name\" = @Nickname", connection))
-                {
-                    checkCommand.Parameters.AddWithValue("@Nickname", nickname);
-                    using (var reader = checkCommand.ExecuteReader())
-                    {
-                        if (!reader.Read())
-                        {
-                            throw new InvalidOperationException("User not found.");
-                        }
-
-                        int userId = reader.GetInt32(0);
-                        string storedPassword = reader.GetString(1);
-
-                        if (storedPassword != password)
-                        {
-                            throw new InvalidOperationException("Invalid password.");
-                        }
-
-                        CurrentUserId = userId;
-                        Console.WriteLine($"User logged in successfully. UserID: {CurrentUserId}");
-                        return true;
-                    }
-                }
+                _logger.LogWarning("Користувач {Nickname} не знайдений.", nickname);
+                throw new InvalidOperationException("Користувача не знайдено.");
             }
+
+            if (user.Password != password)
+            {
+                _logger.LogWarning("Невірний пароль для користувача {Nickname}.", nickname);
+                throw new InvalidOperationException("Невірний пароль.");
+            }
+
+            CurrentUserId = user.Id;
+            _logger.LogInformation("Користувач {Nickname} успішно увійшов у систему.", nickname);
+            return true;
         }
     }
-}
+}   

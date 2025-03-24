@@ -1,66 +1,71 @@
 using System;
 using Xunit;
 using BLL.Models;
+using BLL.Models.Interfaces;
+using DAL.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
+using PL.Controllers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+
 
 public class AutorizationTests
 {
-    private readonly Autorization _auth;
+    private readonly DbContextOptions<ApplicationDbContext> _dbContextOptions;
+    private readonly Mock<ILogger<Autorization>> _loggerMock;
 
     public AutorizationTests()
     {
-        _auth = new Autorization();
+        _dbContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDb")
+            .Options;
+        _loggerMock = new Mock<ILogger<Autorization>>();
     }
 
     [Fact]
-    public void Register_ThrowsException_WhenFieldsAreEmpty()
+    public async Task CreateNewUser_ShouldThrowException_WhenFieldsAreEmpty()
     {
-        try
-        {
-            _auth.Register("", "", "");
-        }
-        catch (ArgumentException ex)
-        {
-            Assert.Equal("All fields must be filled.", ex.Message);
-        }
+        using var context = new ApplicationDbContext(_dbContextOptions);
+        var service = new Autorization(context, _loggerMock.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.CreateNewUser("", "", ""));
+    }
+
+
+    [Fact]
+    public async Task CreateNewUser_ShouldCreateUserSuccessfully()
+    {
+        using var context = new ApplicationDbContext(_dbContextOptions);
+        var service = new Autorization(context, _loggerMock.Object);
+
+        var user = await service.CreateNewUser("newuser", "new@example.com", "password");
+        Assert.NotNull(user);
+        Assert.Equal("newuser", user.Name);
+        Assert.Equal("new@example.com", user.Email);
     }
 
     [Fact]
-    public void Register_ThrowsException_WhenEmailIsInvalid()
+    public void Login_ShouldThrowException_WhenUserDoesNotExist()
     {
-        try
-        {
-            _auth.Register("User", "invalidemail", "password123");
-        }
-        catch (ArgumentException ex)
-        {
-            Assert.Equal("Invalid email format.", ex.Message);
-        }
+        using var context = new ApplicationDbContext(_dbContextOptions);
+        var service = new Autorization(context, _loggerMock.Object);
+
+        Assert.Throws<InvalidOperationException>(() => service.Login("unknown", "password"));
     }
 
     [Fact]
-    public void Register_ThrowsException_WhenNicknameAlreadyExists()
+    public void Login_ShouldAuthenticateSuccessfully()
     {
-        try
-        {
-            _auth.Register("ExistingUser", "user@example.com", "password123");
-        }
-        catch (InvalidOperationException ex)
-        {
-            Assert.Equal("User with this nickname already exists.", ex.Message);
-        }
-    }
+        using var context = new ApplicationDbContext(_dbContextOptions);
+        context.Users.Add(new User { Id = 1, Name = "testuser", Email = "test@example.com", Password = "password" });
+        context.SaveChanges();
 
-    [Fact]
-    public void Login_ThrowsException_WhenUserNotFound()
-    {
-        try
-        {
-            _auth.Login("NonExistentUser", "password123");
-        }
-        catch (InvalidOperationException ex)
-        {
-            Assert.Equal("User not found.", ex.Message);
-        }
-    }
+        var service = new Autorization(context, _loggerMock.Object);
+        var result = service.Login("testuser", "password");
 
+        Assert.True(result);
+        Assert.Equal(1, Autorization.CurrentUserId);
+    }
 }

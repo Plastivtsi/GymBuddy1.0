@@ -1,0 +1,26 @@
+﻿@model List<DAL.Models.User>
+
+@{
+    ViewData["Title"] = "Мої друзі";
+}
+
+<h2>Список друзів</h2>
+
+<form method="get" action="@Url.Action("Search", "Friendship")">
+    <input type="text" name="name" placeholder="Пошук друга за ім'ям" />
+    <button type="submit">Пошук</button>
+</form>
+
+@if (Model.Count == 0)
+{
+    <p>У вас немає друзів</p>
+}
+else
+{
+    <ul>
+        @foreach (var friend in Model)
+        {
+            <li>@friend.Name (@friend.Email)</li>
+        }
+    </ul>
+}
