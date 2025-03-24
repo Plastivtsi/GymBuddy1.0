@@ -9,12 +9,12 @@ using DAL.Repositorie;
 
 namespace Tests.ServicesTests
 {
-    public class TrainingServiceTests
+    public class TrainingHistoryServiceTests
     {
         private readonly Mock<ITrainingRepository> _trainingRepositoryMock;
         private readonly TrainingService _trainingService;
 
-        public TrainingServiceTests()
+        public TrainingHistoryServiceTests()
         {
             _trainingRepositoryMock = new Mock<ITrainingRepository>();
             _trainingService = new TrainingService(_trainingRepositoryMock.Object);
@@ -51,7 +51,8 @@ namespace Tests.ServicesTests
 
             // Упевнимося, що метод GetTrainingsByUserIdAsync існує в ITrainingRepository
             _trainingRepositoryMock.Setup(repo => repo.GetTrainingsByUserId(userId))
-                .ReturnsAsync(trainings);
+            .ReturnsAsync(trainings.ToList()); // .ToList() -> відповідність поверненню Task<List<Training>>
+
 
             // Act
             var result = await _trainingService.GetUserTrainingHistory(userId);

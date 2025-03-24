@@ -21,9 +21,13 @@ namespace BLL.Service
         {
             return await _trainingRepository.SearchTrainingsAsync(name, date, userId);
         }
-        public async Task<IEnumerable<Training>> GetUserTrainingHistory(int userId)
+        public async Task<List<Training>> GetUserTrainingHistory(int userId)
         {
-            return await _trainingHistoryRepository.GetUserTrainingHistory(userId);
+            var trainings = await _trainingRepository.GetTrainingsByUserId(userId) ?? new List<Training>();
+
+            return trainings
+            .Where(t => (t.Exercises ?? new List<Exercise>()).Any(e => e.Weight > 0))
+            .ToList();
         }
     }
 }
