@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using DAL.Repositorie;
 using DAL.Models;
+using BLL.Service;
 
 
-namespace BLL.Services
+namespace BLL.Service
 {
     public class TrainingHistoryService : ITrainingHistoryService
     {
@@ -18,7 +19,7 @@ namespace BLL.Services
             _trainingHistoryRepository = trainingHistoryRepository;
         }
 
-        public IEnumerable<TrainingHistoryModel> GetUserTrainingHistory(int userId)
+        public IEnumerable<TrainingHistory> GetUserTrainingHistory(int userId)
         {
             return _trainingHistoryRepository.GetUserTrainingHistory(userId)
                 .Select(t => new TrainingHistoryModel
@@ -30,10 +31,9 @@ namespace BLL.Services
                     {
                         Name = e.Name,
                         Weight = e.Weight,
-                        Reps = e.Reps
+                        Repetitions = e.Repetitions
                     }).ToList()
                 });
         }
     }
 }
-

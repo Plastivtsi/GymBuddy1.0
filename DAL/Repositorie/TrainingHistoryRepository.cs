@@ -1,8 +1,8 @@
 ﻿using DAL.Models;
-using DAL.Repositories;
+using DAL.Repositorie;
 using Microsoft.EntityFrameworkCore;
 
-namespace DAL.Repositories
+namespace DAL.Repositorie
 {
     public class TrainingHistoryRepository : ITrainingHistoryRepository
     {

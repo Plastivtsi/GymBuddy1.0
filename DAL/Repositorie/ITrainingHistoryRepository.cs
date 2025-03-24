@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DAL.Models;
 
-namespace DAL.Models
+namespace DAL.Repositorie
 {
     public interface ITrainingHistoryRepository
     {
