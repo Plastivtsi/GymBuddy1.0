@@ -14,6 +14,7 @@ namespace DAL.Models
         public TimeSpan Time { get; set; }
         public string Description { get; set; }
         public int UserId { get; set; }
+        public bool Template { get; set; }
 
         // Навігаційні властивості
         public User User { get; set; }
