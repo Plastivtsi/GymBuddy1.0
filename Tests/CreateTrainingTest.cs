@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Moq; // Для мокування
+using Moq; 
 using PL.Controllers;
 using BLL.Models;
 using DAL.Models;
@@ -131,7 +131,7 @@ namespace Tests.ControllersTests
 
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal("Create", viewResult.ViewName); // Змінюємо "CREATE" на "Create"
+            Assert.Equal("Create", viewResult.ViewName); 
             Assert.Equal(training, viewResult.Model);
             Assert.Equal("Помилка: Користувач з таким ID не знайдений", viewResult.ViewData["Message"]);
         }
