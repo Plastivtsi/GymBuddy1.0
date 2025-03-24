@@ -10,6 +10,7 @@ namespace DAL.Repositorie
     public interface ITrainingRepository
     {
         Task<IEnumerable<Training>> SearchTrainingsAsync(string? name, DateTime? date, int? userId);
+        Task<List<Training>> GetTrainingsByUserId(int userId);
     }
 
     public class TrainingRepository : ITrainingRepository
@@ -36,5 +37,12 @@ namespace DAL.Repositorie
 
             return await query.ToListAsync();
         }
+        public async Task<List<Training>> GetTrainingsByUserId(int userId)
+        {
+            return await _context.Set<Training>()
+                .Where(t => t.UserId == userId)
+                .ToListAsync();
+        }
+
     }
 }

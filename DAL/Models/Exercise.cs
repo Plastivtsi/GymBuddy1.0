@@ -9,10 +9,12 @@ namespace DAL.Models
     public class Exercise
     {
         public int Id { get; set; }
+        public string Name { get; set; }
         public int TrainingId { get; set; }
         public double Weight { get; set; }
         public int Repetitions { get; set; }
         public string Notes { get; set; }
+        public bool Template { get; set; }
 
         // Навігаційні властивості
         public Training Training { get; set; }
