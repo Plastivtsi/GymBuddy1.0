@@ -1,7 +1,5 @@
 ﻿using BLL.Service;
-using BLL.Service;
 using DAL.Models;
-using DAL.Repositorie;
 using DAL.Repositorie;
 using Moq;
 using System;
