@@ -10,6 +10,7 @@ namespace DAL.Models
     {
         public int Id { get; set; }
         public int TrainingId { get; set; }
+
         public double Weight { get; set; }
         public int Repetitions { get; set; }
         public string Notes { get; set; }
