@@ -14,37 +14,13 @@ namespace PL.Controllers
 
         public HomeController(ILogger<HomeController> logger)
         {
-            _logger = logger;
-            //_userService = userService;
-            UserInfo = GetUserInfo();
+            _logger = logger;           
         }
 
         public IActionResult Index()
         {
-            ViewBag.UserInfo = GetUserInfo();
-            return View();
-            
-        }
-        private string GetUserInfo()
-        {
-
-            User proba = new User();
-            UserService service = new UserService();
-            service.UpdateUser(1, "Andriy", "plastivtsi", "222", 60, 174);
-            proba = service.GetUserById(1);
-            if (proba == null){
-                return "повернуло null ";
-            }
-            else
-            {
-                return proba.UserName + " " + proba.Email +" "+ proba.Role+" " + proba.Height +" "+ proba.Weight;
-
-            }
-           
-            //User proba = _userService.GetUserById(1);
-            //return $"{proba.UserName} {proba.Email} {proba.Role} {proba.Height} {proba.Weight}";
-        }
-
+            return View();            
+        }       
 
         public IActionResult Privacy()
         {

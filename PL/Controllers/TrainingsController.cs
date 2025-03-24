@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BLL.Models;
 using DAL.Models;
+using BLL.Models;
 
 namespace PL.Controllers
 {

@@ -1,72 +1,79 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading.Tasks;
+//using BLL.Models.Interfaces;
+using DAL.Models;
 using BLL.Models;
+using BLL.Models.Interfaces;
 
 namespace PL.Controllers
 {
     public class AccountController : Controller
     {
-        private Autorization auth = new Autorization();
+        private readonly ICreateUser _createUser;
 
-       
-        public ActionResult Login()
+       // private readonly Autorization _authorization;
+        private readonly ILogger<AccountController> _logger;
+
+        public AccountController(ICreateUser createUser, ILogger<AccountController> logger)
         {
-            return View();
+            _createUser = createUser ?? throw new ArgumentNullException(nameof(createUser));
+            _logger = logger;
         }
 
-        
-        [HttpPost]
-        public ActionResult Login(string loginUsername, string loginPassword)
-        {
-            try
-            {
-                if (auth.Login(loginUsername, loginPassword))
-                {
-                    HttpContext.Session.SetInt32("UserID", Autorization.CurrentUserId);
-                    return RedirectToAction("Index", "Home");
-                }
-                else
-                {
-                    ViewBag.Error = "Невірні дані для входу";
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = ex.Message;
-            }
-
-            return View();
-        }
-
-        // Відображення сторінки реєстрації
         public ActionResult Register()
         {
             return View();
         }
 
         [HttpPost]
-        public ActionResult Register(string nickname, string email, string password)
+        public async Task<IActionResult> CreateUser(User user)
         {
             try
             {
-                if (auth.Register(nickname, email, password))
+                await _createUser.CreateNewUser(user.Name, user.Email, user.Password);
+                _logger.LogInformation("Користувач {Nickname} успішно зареєстрований.", user.Name);
+                return RedirectToAction("Login");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Помилка реєстрації користувача {Nickname}.", user.Name);
+                ViewBag.Error = ex.Message;
+                return View("Register");
+            }          
+        }
+
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Login(string loginUsername, string loginPassword)
+        {
+            try
+            {
+                if (((Autorization)_createUser).Login(loginUsername, loginPassword))
                 {
-                    return RedirectToAction("Login");
+                    HttpContext.Session.SetInt32("UserID", Autorization.CurrentUserId);
+                    _logger.LogInformation("Користувач {Username} успішно увійшов у систему.", loginUsername);
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    ViewBag.Error = "Помилка при реєстрації.";
+                    _logger.LogWarning("Невдала спроба входу для {Username}.", loginUsername);
+                    ViewBag.Error = "Невірні дані для входу";
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Помилка входу користувача {Username}.", loginUsername);
                 ViewBag.Error = ex.Message;
             }
 
             return View();
         }
 
-        // Вихід з системи
         public ActionResult Logout()
         {
             HttpContext.Session.Clear();

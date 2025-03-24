@@ -15,6 +15,10 @@ namespace PL
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using BLL.Models;
+    using DAL.Models;
+    using BLL.Models.Interfaces;
+    using Microsoft.EntityFrameworkCore;
 
     /// <summary>
     /// The entry point class for the GymBuddy application.
@@ -38,7 +42,13 @@ namespace PL
             builder.Host.UseSerilog(); // Вказуємо застосовувати Serilog
 
             // Додаємо сервіси
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddScoped<ICreateUser, Autorization>();
+            builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();
+            //builder.Services.AddScoped<Autorization>();
+           
             // Додаємо підтримку сесій
             builder.Services.AddDistributedMemoryCache(); // Використовуємо пам'ять для збереження сесій
             builder.Services.AddSession(options =>
@@ -47,11 +57,15 @@ namespace PL
                 options.Cookie.HttpOnly = true; // Захист від XSS-атак
                 options.Cookie.IsEssential = true; // Необхідно для роботи в режимі GDPR
             });
+           
 
+
+
+            var app = builder.Build();
             /// <summary>
             /// The web application instance.
             /// </summary>
-            var app = builder.Build();
+
 
             // Налаштування HTTP-конвеєра
             if (!app.Environment.IsDevelopment())

@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Moq; // Для мокування
 using PL.Controllers;
-using BLL.Models;
 using DAL.Models;
 using Xunit;
+using BLL.Models;
 
 namespace Tests.ControllersTests
 {
