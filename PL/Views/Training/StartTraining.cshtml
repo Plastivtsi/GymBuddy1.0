@@ -1,0 +1,34 @@
+﻿@model List<DAL.Models.Training>
+
+@{
+    ViewData["Title"] = "Почати тренування";
+}
+
+<h2>Виберіть шаблон тренування</h2>
+
+@if (Model == null || !Model.Any())
+{
+    <p>Немає доступних шаблонних тренувань.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var training in Model)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">@training.Name</h5>
+                        <p class="card-text">@training.Description</p>
+                        <p class="card-text"><strong>Тривалість:</strong> @training.Time.ToString(@"hh\:mm\:ss")</p>
+                        @if (training.Exercises != null && training.Exercises.Any())
+                        {
+                            <p class="card-text"><strong>Вправи:</strong> @training.Exercises.Count</p>
+                        }
+                        <a asp-action="SelectTraining" asp-route-id="@training.Id" class="btn btn-primary">Вибрати</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

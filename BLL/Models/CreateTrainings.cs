@@ -29,6 +29,7 @@ namespace BLL.Models
                 Time = time,
                 Description = description,
                 UserId = userId,
+                Template = true,
                 Exercises = new List<Exercise>()
             };
 
