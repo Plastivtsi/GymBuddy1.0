@@ -55,7 +55,7 @@ namespace Tests.ServicesTests
 
 
             // Act
-            var result = await _trainingService.GetUserTrainingHistory(userId);
+            var result = await _trainingService.GetUserTrainingHistoryAsync(userId);
 
             // Assert
             Assert.Single(result); // Має залишитися тільки одне тренування
