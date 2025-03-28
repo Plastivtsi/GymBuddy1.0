@@ -1,12 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="Program.cs" company="GymBuddy">
-//   Copyright (c) GymBuddy. All rights reserved.
-// </copyright>
-// <summary>
-//   Entry point of the GymBuddy application.
-// </summary>
-// --------------------------------------------------------------------------------------------------------------------
-
 namespace PL
 {
     using PL.Controllers;
@@ -19,55 +10,43 @@ namespace PL
     using DAL.Models;
     using BLL.Models.Interfaces;
     using Microsoft.EntityFrameworkCore;
+    using BLL.Service; // Додаємо для UserService
+    using DAL.Interfaces; // Додаємо для IUserRepository
+    using DAL.Repositories; // Додаємо для UserRepository
 
-    /// <summary>
-    /// The entry point class for the GymBuddy application.
-    /// </summary>
     public class Program
     {
-        /// <summary>
-        /// Main entry point for the GymBuddy application.
-        /// This method configures the application and starts the web server.
-        /// </summary>
-        /// <param name="args">An array of command-line arguments passed to the application.</param>
         public static void Main(string[] args)
         {
-            /// <summary>
-            /// A builder for the web application.
-            /// </summary>
             var builder = WebApplication.CreateBuilder(args);
 
-            // Налаштування Serilog перед створенням `builder`
             LoggingConfig.ConfigureLogging();
-            builder.Host.UseSerilog(); // Вказуємо застосовувати Serilog
+            builder.Host.UseSerilog();
 
-            // Додаємо сервіси
+            // Реєстрація DbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Реєстрація репозиторію та сервісу
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+
+            // Інші сервіси
             builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();
-            //builder.Services.AddScoped<Autorization>();
-           
+
             // Додаємо підтримку сесій
-            builder.Services.AddDistributedMemoryCache(); // Використовуємо пам'ять для збереження сесій
+            builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(30); // Тривалість сесії
-                options.Cookie.HttpOnly = true; // Захист від XSS-атак
-                options.Cookie.IsEssential = true; // Необхідно для роботи в режимі GDPR
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
             });
-           
-
-
 
             var app = builder.Build();
-            /// <summary>
-            /// The web application instance.
-            /// </summary>
 
-
-            // Налаштування HTTP-конвеєра
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -76,7 +55,6 @@ namespace PL
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
             app.UseAuthorization();
             app.UseSession();
@@ -85,10 +63,7 @@ namespace PL
                 name: "default",
                 pattern: "{controller=Account}/{action=Login}/{id?}");
 
-            // Логування запуску застосунку
             Log.Information("Застосунок запущено");
-
-            // Запуск застосунку
             app.Run();
         }
     }
