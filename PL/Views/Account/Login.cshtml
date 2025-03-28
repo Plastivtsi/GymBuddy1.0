@@ -2,21 +2,23 @@
     ViewBag.Title = "Вхід";
 }
 
-<h2>Вхід</h2>
+<div class="container-center">
+    <h2>Вхід</h2>
 
-@if (!string.IsNullOrEmpty(ViewBag.Error))
-{
-    <p style="color:red">@ViewBag.Error</p>
-}
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <p style="color:red">@ViewBag.Error</p>
+    }
 
-<form method="post" asp-controller="Account" asp-action="Login">
-    <label for="loginUsername">Ім'я:</label>
-    <input type="text" id="loginUsername" name="loginUsername" required />
+    <form method="post" asp-controller="Account" asp-action="Login">
+        <label for="loginUsername">Ім'я:</label>
+        <input type="text" id="loginUsername" name="loginUsername" required />
 
-    <label for="loginPassword">Пароль:</label>
-    <input type="password" id="loginPassword" name="loginPassword" required />
+        <label for="loginPassword">Пароль:</label>
+        <input type="password" id="loginPassword" name="loginPassword" required />
 
-    <input type="submit" value="Увійти" />
-</form>
+        <input type="submit" value="Увійти" />
+    </form>
 
-<p>Не маєте акаунту? <a href="@Url.Action("Register", "Account")">Зареєструйтесь тут</a></p>
+    <p>Не маєте акаунту? <a href="@Url.Action("Register", "Account")">Зареєструйтесь тут</a></p>
+</div>

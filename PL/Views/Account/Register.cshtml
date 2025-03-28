@@ -3,22 +3,26 @@
 }
 @model IEnumerable<DAL.Models.User>
 
-<h2>Реєстрація</h2>
+<div class="container-center">
+    <h2>Реєстрація</h2>
 
-@if (ViewBag.Error != null)
-{
-    <p style="color:red">@ViewBag.Error</p>
-}
+    @if (ViewBag.Error != null)
+    {
+        <p style="color:red">@ViewBag.Error</p>
+    }
 
-<form method="post" asp-controller="Account" asp-action="CreateUser">
-    <label for="nickname">Ім'я:</label>
-    <input type="text" id="nickname" name="" required />
+    <form method="post" asp-controller="Account" asp-action="CreateUser">
+        <label for="nickname">Ім'я:</label>
+        <input type="text" id="nickname" name="nickname" required />
 
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required />
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required />
 
-    <label for="password">Пароль:</label>
-    <input type="password" id="password" name="password" required />
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required />
 
-    <input type="submit" value="Зареєструватися" />
-</form>
+        <input type="submit" value="Зареєструватися" />
+    </form>
+
+    <p>Вже маєте акаунт? <a href="@Url.Action("Login", "Account")">Увійдіть тут</a></p>
+</div>
