@@ -1,0 +1,25 @@
+﻿@model DAL.Models.User
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center">Your Profile</h2>
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">User Information</h5>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3">Name:</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+
+                <dt class="col-sm-3">Email:</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+            </dl>
+            <div class="text-center mt-4">
+                <a asp-controller="EditProfile" asp-action="Index" class="btn btn-primary">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
