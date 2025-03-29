@@ -5,17 +5,23 @@
 }
 
 <div class="container mt-5">
-    <h2 class="text-center">Your Profile</h2>
+    <h2 class="text-center">Ваш профіль</h2>
     <div class="card mt-4">
         <div class="card-body">
-            <h5 class="card-title">User Information</h5>
+            <h5 class="card-title">Інформація</h5>
             <hr />
             <dl class="row">
-                <dt class="col-sm-3">Name:</dt>
+                <dt class="col-sm-3">Ім'я:</dt>
                 <dd class="col-sm-9">@Model.Name</dd>
 
                 <dt class="col-sm-3">Email:</dt>
                 <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">Вага:</dt>
+                <dd class="col-sm-9">@Model.Weight</dd>
+
+                <dt class="col-sm-3">Зріст:</dt>
+                <dd class="col-sm-9">@Model.Height</dd>
             </dl>
             <div class="text-center mt-4">
                 <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
