@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DAL.Interfaces;
 using DAL.Models;
+using DAL.Interfaces;
 
 namespace PL.Controllers
 {
