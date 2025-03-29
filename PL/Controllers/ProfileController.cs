@@ -31,5 +31,32 @@ namespace YourProject.Controllers
 
             return View(user);
         }
+
+        // GET: /Profile/Edit/
+        public IActionResult Edit()
+        {
+            var userId = Autorization.CurrentUserId;
+            var user = _userService.GetUserById(userId.ToString());
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            return View(user);
+        }
+
+        // POST: /Profile/Edit/
+        [HttpPost]
+        public IActionResult Edit(User model)
+        {
+            if (ModelState.IsValid)
+            {
+                _userService.UpdateUser(model); // Оновлюємо користувача
+                return RedirectToAction("Index"); // Перенаправляємо на профіль після редагування
+            }
+
+            return View(model); // Повертаємо на сторінку редагування, якщо є помилки в моделі
+        }
     }
 }

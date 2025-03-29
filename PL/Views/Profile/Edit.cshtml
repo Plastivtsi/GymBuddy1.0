@@ -1,10 +1,10 @@
 @model DAL.Models.User
 
 @{
-    ViewBag.Title = "Редагування профілю";
+    ViewData["Title"] = "Edit Profile";
 }
 
-<h2>Редагування профілю</h2>
+<h2>Редагувати профіль</h2>
 
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />

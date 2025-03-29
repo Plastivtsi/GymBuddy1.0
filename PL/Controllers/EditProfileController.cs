@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using DAL.Interfaces;
 using DAL.Models;
 using DAL.Interfaces;
 
@@ -7,11 +6,11 @@ namespace PL.Controllers
 {
     public class EditProfileController : Controller
     {
-        private readonly IUserService userService;
+        private readonly IUserService _userService;
 
         public EditProfileController(IUserService userService)
         {
-            this.userService = userService;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -21,28 +20,28 @@ namespace PL.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return this.Unauthorized();
+                return Unauthorized();
             }
 
-            var user = this.userService.GetUserById(userId);
+            var user = _userService.GetUserById(userId);
             if (user == null)
             {
-                return this.NotFound();
+                return NotFound();
             }
 
-            return this.View(user);
+            return View(user); // Повертаємо модель користувача для редагування
         }
 
         [HttpPost]
         public IActionResult Edit(User model)
         {
-            if (this.ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                this.userService.UpdateUser(model);
-                return this.RedirectToAction("Profile", new { id = model.Id });
+                _userService.UpdateUser(model); // Оновлюємо дані користувача
+                return RedirectToAction("Profile", "Index"); // Перенаправляємо на профіль
             }
-            
-            return this.View(model);
+
+            return View(model); // Повертаємо назад на сторінку редагування з помилками
         }
     }
 }
