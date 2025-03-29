@@ -18,7 +18,7 @@
                 <dd class="col-sm-9">@Model.Email</dd>
             </dl>
             <div class="text-center mt-4">
-                <a asp-controller="EditProfile" asp-action="Index" class="btn btn-primary">Edit Profile</a>
+                <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
             </div>
         </div>
     </div>
