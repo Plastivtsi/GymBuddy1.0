@@ -1,0 +1,73 @@
+﻿@model List<DAL.Models.Training>
+
+@{
+    ViewData["Title"] = "Мої тренування";
+}
+
+<div class="container">
+    <h1 class="my-4">Мої тренування</h1>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            У вас ще немає тренувань. Створіть своє перше тренування!
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var training in Model)
+            {
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@training.Name</h5>
+                            <div class="exercises-list">
+                                @if (training.Exercises != null && training.Exercises.Any())
+                                {
+                                    <ul class="list-group list-group-flush">
+                                        @foreach (var exercise in training.Exercises)
+                                        {
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                @exercise.Name
+                                                <span class="badge bg-secondary">
+                                                    @exercise.Weight кг × @exercise.Repetitions
+                                                </span>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">Немає вправ</p>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <a href="@Url.Action("Start", "Training", new { id = training.Id })"
+                               class="btn btn-primary">Розпочати</a>
+                            <a href="@Url.Action("Edit", "Training", new { id = training.Id })"
+                               class="btn btn-secondary">Змінити</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .card {
+        transition: all 0.3s;
+    }
+
+        .card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+    .exercises-list {
+        min-height: 100px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>

@@ -1,38 +1,51 @@
-﻿using BLL.Service;
-using DAL.Models;
+﻿using DAL.Models;
+using DAL.Repositorie;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
-namespace GymBuddy.MVC.Controllers
+namespace PL.Controllers
 {
     public class TrainingController : Controller
     {
-        private readonly TrainingService _trainingService;
+        private readonly ITrainingRepository _trainingRepository;
 
-        public TrainingController(TrainingService trainingService)
+        public TrainingController(ITrainingRepository trainingRepository)
         {
-            _trainingService = trainingService ?? throw new ArgumentNullException(nameof(trainingService));
+            _trainingRepository = trainingRepository;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Search(string? name, DateTime? date, int? userId)
+        public async Task<IActionResult> Index(int userId)
         {
-            var trainings = await _trainingService.SearchTrainingsAsync(name, date, userId);
+            var trainings = await _trainingRepository.GetTrainingsByUserId(userId);
             return View(trainings);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> History(int userId)
+        public async Task<IActionResult> Start(int id)
         {
-            var trainings = await _trainingService.GetUserTrainingHistoryAsync(userId);
-            return View(trainings);
+            var training = await _trainingRepository.SearchTrainingsAsync(null, null, null)
+                .ContinueWith(t => t.Result.FirstOrDefault(tr => tr.Id == id));
+
+            if (training == null)
+            {
+                return NotFound();
+            }
+
+            // Логіка для початку тренування (наприклад, збереження часу початку)
+            // Тут можна додати запис у БД або перенаправлення на сторінку виконання
+            return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Templates()
+        public async Task<IActionResult> Edit(int id)
         {
-            var templates = await _trainingService.GetTemplateTrainingsWithExercisesAsync();
-            return View(templates);
+            var training = await _trainingRepository.SearchTrainingsAsync(null, null, null)
+                .ContinueWith(t => t.Result.FirstOrDefault(tr => tr.Id == id));
+
+            if (training == null)
+            {
+                return NotFound();
+            }
+
+            // Перенаправлення на сторінку редагування
+            return View("Edit", training); // Потрібно створити Edit.cshtml
         }
     }
 }

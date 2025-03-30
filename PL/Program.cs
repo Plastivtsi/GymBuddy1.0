@@ -3,16 +3,16 @@ namespace PL
     using PL.Controllers;
     using Serilog;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using BLL.Models;
     using DAL.Models;
     using BLL.Models.Interfaces;
     using Microsoft.EntityFrameworkCore;
-    using BLL.Service; // Додаємо для UserService
-    using DAL.Interfaces; // Додаємо для IUserRepository
-    using DAL.Repositories; // Додаємо для UserRepository
+    using BLL.Service;
+    using DAL.Interfaces;
+    using DAL.Repositories;
+    using DAL.Repositorie;
 
     public class Program
     {
@@ -27,9 +27,13 @@ namespace PL
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Реєстрація репозиторію та сервісу
+            // Додаємо DbContext як базовий тип
+            builder.Services.AddScoped<DbContext, ApplicationDbContext>();
+
+            // Реєстрація репозиторіїв та сервісів
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ITrainingRepository, TrainingRepository>();
 
             // Інші сервіси
             builder.Services.AddScoped<ICreateUser, Autorization>();
