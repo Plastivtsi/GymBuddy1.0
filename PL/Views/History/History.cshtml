@@ -1,0 +1,42 @@
+﻿@model IEnumerable<DAL.Models.TrainingHistoryModel>
+
+@{
+    ViewData["Title"] = "History";
+}
+
+<h2>Історія тренувань</h2>
+
+@if (!Model.Any())
+{
+    <p>У вас ще немає тренувань.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Дата</th>
+                <th>Вправи</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var training in Model)
+            {
+                <tr>
+                    <td>@training.Id</td>
+                    <td>
+                        <ul>
+                            @foreach (var exercise in training.Exercises)
+                            {
+                                <li>@exercise.Name - @exercise.Weight кг, @exercise.Repetitions повторень</li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a href="@Url.Action("Index", "Home")" class="btn btn-primary">Назад</a>
