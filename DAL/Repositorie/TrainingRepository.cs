@@ -40,6 +40,7 @@ namespace DAL.Repositorie
         public async Task<List<Training>> GetTrainingsByUserId(int userId)
         {
             return await _context.Set<Training>()
+                .Include(t => t.Exercises) // Додаємо вправи
                 .Where(t => t.UserId == userId)
                 .ToListAsync();
         }
