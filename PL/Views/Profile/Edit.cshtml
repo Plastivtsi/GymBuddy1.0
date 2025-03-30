@@ -1,33 +1,40 @@
 @model DAL.Models.User
 
 @{
-    ViewData["Title"] = "Edit Profile";
+    ViewData["Title"] = "Редагування профілю";
 }
 
-<h2>Редагувати профіль</h2>
+<h2>Редагування профілю</h2>
 
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />
-    <div class="form-group">
-        <label asp-for="Name"></label>
-        <input asp-for="Name" class="form-control" required />
+
+    <div class="form-group mb-4">
+        <label asp-for="Name">Ім'я</label>
+        <input asp-for="Name" class="form-control form-control-lg" required />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" required type="email" />
+
+    <div class="form-group mb-4">
+        <label asp-for="Email">Електронна пошта</label>
+        <input asp-for="Email" class="form-control form-control-lg" required type="email" />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="Weight"></label>
-        <input asp-for="Weight" class="form-control" type="number" step="0.1" required />
+
+    <div class="form-group mb-4">
+        <label asp-for="Weight">Вага (кг)</label>
+        <input asp-for="Weight" class="form-control form-control-lg" type="number" step="0.1" required />
         <span asp-validation-for="Weight" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="Height"></label>
-        <input asp-for="Height" class="form-control" type="number" step="0.1" required />
+
+    <div class="form-group mb-4">
+        <label asp-for="Height">Зріст (см)</label>
+        <input asp-for="Height" class="form-control form-control-lg" type="number" step="0.1" required />
         <span asp-validation-for="Height" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Зберегти</button>
+    <div class="form-group mt-4 text-center">
+        <button type="submit" class="btn btn-primary btn-lg">Зберегти</button>
+    </div>
+
 </form>

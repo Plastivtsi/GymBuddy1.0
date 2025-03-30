@@ -46,7 +46,9 @@ namespace BLL.Service
                 .FirstOrDefault(t => t.Id == templateTrainingId && t.Template);
 
             if (template == null)
+            {
                 throw new ArgumentException("Template training not found");
+            }
 
             var newTraining = new Training
             {
@@ -63,7 +65,7 @@ namespace BLL.Service
                     Repetitions = e.Repetitions,
                     Notes = e.Notes,
                     Template = false
-                }).ToList()
+                }).ToList(),
             };
 
             // Тут має бути логіка збереження в репозиторії, якщо вона є
