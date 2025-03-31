@@ -18,6 +18,6 @@ namespace BLL.Models.Interfaces
 {
     public interface ICreateUser
     {
-        Task<User> CreateNewUser(string nickname, string email, string password);
+        Task<DAL.Models.User> CreateNewUser(string nickname, string email, string password);
     }
 }
