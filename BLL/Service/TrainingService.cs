@@ -2,11 +2,13 @@
 using DAL.Repositorie;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using BLL.Interfaces;
 
 namespace BLL.Service
 {
-    public class TrainingService
+    public class TrainingService : ITrainingService
     {
         private readonly ITrainingRepository _trainingRepository;
 
@@ -15,13 +17,26 @@ namespace BLL.Service
             _trainingRepository = trainingRepository ?? throw new ArgumentNullException(nameof(trainingRepository));
         }
 
-        // Пошук тренувань
+        public async Task<List<Training>> GetTrainingsByUserIdAsync(int userId)
+        {
+            return await _trainingRepository.GetTrainingsByUserId(userId);
+        }
+
+        public async Task CreateTrainingAsync(Training training)
+        {
+            if (training == null)
+            {
+                throw new ArgumentNullException(nameof(training));
+            }
+
+            await _trainingRepository.CreateTrainingAsync(training);
+        }
+
         public async Task<IEnumerable<Training>> SearchTrainingsAsync(string? name, DateTime? date, int? userId)
         {
             return await _trainingRepository.SearchTrainingsAsync(name, date, userId);
         }
 
-        // Отримання історії тренувань користувача
         public async Task<List<Training>> GetUserTrainingHistoryAsync(int userId)
         {
             var trainings = await _trainingRepository.GetTrainingsByUserId(userId);
@@ -30,7 +45,6 @@ namespace BLL.Service
                 .ToList();
         }
 
-        // Отримання шаблонних тренувань
         public async Task<List<Training>> GetTemplateTrainingsWithExercisesAsync()
         {
             var trainings = await _trainingRepository.SearchTrainingsAsync(null, null, null);
@@ -39,7 +53,6 @@ namespace BLL.Service
                 .ToList();
         }
 
-        // Створення тренування з шаблону
         public async Task<Training> CreateTrainingFromTemplateAsync(int templateTrainingId, int userId, List<Exercise> updatedExercises)
         {
             var template = (await _trainingRepository.SearchTrainingsAsync(null, null, null))
@@ -68,7 +81,7 @@ namespace BLL.Service
                 }).ToList(),
             };
 
-            // Тут має бути логіка збереження в репозиторії, якщо вона є
+            await _trainingRepository.CreateTrainingAsync(newTraining);
             return newTraining;
         }
     }

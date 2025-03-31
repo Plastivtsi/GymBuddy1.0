@@ -10,6 +10,7 @@ namespace PL
     using BLL.Models.Interfaces;
     using Microsoft.EntityFrameworkCore;
     using BLL.Service;
+    using BLL.Interfaces;
     using DAL.Interfaces;
     using DAL.Repositories;
     using DAL.Repositorie;
@@ -27,15 +28,14 @@ namespace PL
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Додаємо DbContext як базовий тип
             builder.Services.AddScoped<DbContext, ApplicationDbContext>();
 
             // Реєстрація репозиторіїв та сервісів
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITrainingRepository, TrainingRepository>();
+            builder.Services.AddScoped<ITrainingService, TrainingService>();
 
-            // Інші сервіси
             builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();

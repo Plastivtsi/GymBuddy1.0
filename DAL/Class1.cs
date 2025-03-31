@@ -1,7 +1,5 @@
-﻿using DAL.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace DAL.Models
 {
@@ -40,10 +38,21 @@ namespace DAL.Models
                 .HasOne(e => e.Training)
                 .WithMany(t => t.Exercises)
                 .HasForeignKey(e => e.TrainingId);
+
+            modelBuilder.Entity<Training>()
+                .Property(t => t.Id)
+                .ValueGeneratedOnAdd(); 
+
+            modelBuilder.Entity<Exercise>()
+                .Property(e => e.Id)
+                .ValueGeneratedOnAdd(); 
+
+            modelBuilder.Entity<Training>()
+                .Property(t => t.Date)
+                .IsRequired(false);
         }
     }
 
-    // Фабрика для створення DbContext у дизайн-таймі
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
         public ApplicationDbContext CreateDbContext(string[] args)
