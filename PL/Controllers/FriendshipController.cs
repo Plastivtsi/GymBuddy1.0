@@ -41,7 +41,7 @@ namespace PL.Controllers
                 return View("SearchResults", new List<DAL.Models.User>());
             }
 
-            return View("SearchResults", users);  // Показуємо результати пошуку}
+            return View("SearchResults", users);  
         }
     }
 }

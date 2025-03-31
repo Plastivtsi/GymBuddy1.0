@@ -27,17 +27,17 @@ namespace PL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser(User user)
+        public async Task<IActionResult> CreateUser(string nickname, string email, string password)
         {
             try
             {
-                await _createUser.CreateNewUser(user.Name, user.Email, user.Password);
-                _logger.LogInformation("Користувач {Nickname} успішно зареєстрований.", user.Name);
+                await _createUser.CreateNewUser(nickname,email,password);
+                _logger.LogInformation("Користувач {Nickname} успішно зареєстрований.", nickname);
                 return RedirectToAction("Login");
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Помилка реєстрації користувача {Nickname}.", user.Name);
+                _logger.LogWarning("Помилка реєстрації користувача {Nickname}.",nickname);
                 ViewBag.Error = ex.Message;
                 return View("Register");
             }          

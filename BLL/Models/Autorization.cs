@@ -37,15 +37,12 @@ namespace BLL.Models
             var userExists = await _context.Users.AnyAsync(u => u.Name == nickname);
             if (userExists)
             {
-                throw new Exception("Такий користувач вже існує");
                 _logger.LogWarning("Користувач {Nickname} вже існує", nickname);
+                throw new Exception("Такий користувач вже існує");
             }
-
-            int maxId = _context.Users.Any() ? _context.Users.Max(e => e.Id) : 0;
 
             var user = new DAL.Models.User
             {
-                Id = maxId + 1,
                 Name = nickname,
                 Email = email,
                 Password = password,
@@ -53,18 +50,11 @@ namespace BLL.Models
                 Height = 150,
                 Role = false
             };
-            try
-            {
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Користувач {Nickname} успішно створений.", nickname);
-                return user;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Помилка при реєстрації користувача {Nickname}", nickname);
-                throw new Exception($"Помилка при рєстрації: {ex.Message}");
-            }
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Користувач {Nickname} успішно створений.", nickname);
+            return user;
+            
         }
 
         public bool Login(string nickname, string password)
