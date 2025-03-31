@@ -45,7 +45,7 @@ input[type="password"] {
     box-sizing: border-box;
 }
 
-input[type="submit"] {
+/*input[type="submit"] {
     width: 100%;
     padding: 10px;
     background-color: #1e90ff;
@@ -54,7 +54,7 @@ input[type="submit"] {
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-}
+}*/
 
     input[type="submit"]:hover {
         background-color: #007bff;
@@ -74,7 +74,7 @@ p {
             text-decoration: underline;
         }
 
-/* Приховуємо навбар і футер на сторінках входу та реєстрації */
+ Приховуємо навбар і футер на сторінках входу та реєстрації 
 header, footer {
     display: none;
 }
