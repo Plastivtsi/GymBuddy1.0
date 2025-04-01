@@ -1,23 +1,25 @@
 ﻿using DAL.Models;
-using DAL.Repositorie;
 using Microsoft.AspNetCore.Mvc;
 using BLL.Interfaces;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 using BLL.Models;
-using BLL.Service;
 using DAL.Interfaces;
 
 namespace PL.Controllers
 {
     public class TrainingController : Controller
     {
-        private readonly ITrainingRepository _trainingRepository;
-        private readonly IUserService _userService; 
+        private readonly ITrainingService _trainingService;
+        private readonly IUserService _userService;
+        private readonly ILogger<TrainingController> _logger;
 
-        // Оновіть конструктор, щоб впровадити IUserService
-        public TrainingController(ITrainingRepository trainingRepository, IUserService userService)
+        public TrainingController(ITrainingService trainingService, IUserService userService, ILogger<TrainingController> logger)
         {
-            _trainingRepository = trainingRepository;
-            _userService = userService; 
+            _trainingService = trainingService;
+            _userService = userService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -30,13 +32,13 @@ namespace PL.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var trainings = await _trainingRepository.GetTrainingsByUserId(userId);
+            var trainings = await _trainingService.GetTrainingsByUserIdAsync(userId);
             return View(trainings);
         }
 
         public async Task<IActionResult> Start(int id)
         {
-            var training = await _trainingRepository.SearchTrainingsAsync(null, null, null)
+            var training = await _trainingService.SearchTrainingsAsync(null, null, null)
                 .ContinueWith(t => t.Result.FirstOrDefault(tr => tr.Id == id));
 
             if (training == null)
@@ -44,23 +46,99 @@ namespace PL.Controllers
                 return NotFound();
             }
 
-            // Логіка для початку тренування (наприклад, збереження часу початку)
-            // Тут можна додати запис у БД або перенаправлення на сторінку виконання
             return RedirectToAction("Index");
         }
 
+        // GET: Відображення сторінки редагування
         public async Task<IActionResult> Edit(int id)
         {
-            var training = await _trainingRepository.SearchTrainingsAsync(null, null, null)
+            _logger.LogInformation("Entering Edit GET method for Training ID {TrainingId}", id);
+
+            var training = await _trainingService.SearchTrainingsAsync(null, null, null)
                 .ContinueWith(t => t.Result.FirstOrDefault(tr => tr.Id == id));
 
             if (training == null)
             {
+                _logger.LogWarning("Training with ID {TrainingId} not found in Edit GET method", id);
                 return NotFound();
             }
 
-            // Перенаправлення на сторінку редагування
-            return View("Edit", training); // Потрібно створити Edit.cshtml
+            _logger.LogInformation("Training found: {@Training}", training);
+            return View(training);
+        }
+
+        // POST: Обробка збереження змін
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Training training)
+        {
+            _logger.LogInformation("Entering Edit POST method for Training ID {TrainingId}", id);
+            _logger.LogInformation("Received training data: {@Training}", training);
+
+            if (id != training.Id)
+            {
+                _logger.LogWarning("Training ID mismatch: URL ID = {UrlId}, Model ID = {ModelId}", id, training.Id);
+                return NotFound();
+            }
+
+            // Видаляємо помилки валідації для навігаційних властивостей
+            ModelState.Remove("User");
+            if (training.Exercises != null)
+            {
+                for (int i = 0; i < training.Exercises.Count; i++)
+                {
+                    ModelState.Remove($"Exercises[{i}].Training");
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                _logger.LogInformation("ModelState is valid. Proceeding with update for Training ID {TrainingId}", id);
+
+                try
+                {
+                    // Переконуємося, що UserId не змінився
+                    var existingTraining = await _trainingService.SearchTrainingsAsync(null, null, null)
+                        .ContinueWith(t => t.Result.FirstOrDefault(tr => tr.Id == id));
+
+                    if (existingTraining == null)
+                    {
+                        _logger.LogWarning("Training with ID {TrainingId} not found in Edit POST method", id);
+                        return NotFound();
+                    }
+
+                    _logger.LogInformation("Existing training found: {@ExistingTraining}", existingTraining);
+
+                    training.UserId = existingTraining.UserId;
+
+                    // Оновлюємо тренування
+                    _logger.LogInformation("Calling UpdateTrainingAsync for Training ID {TrainingId}", id);
+                    await _trainingService.UpdateTrainingAsync(training);
+
+                    _logger.LogInformation("Training updated successfully with ID {TrainingId}", training.Id);
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating training with ID {TrainingId}", training.Id);
+                    ModelState.AddModelError("", "Не вдалося зберегти зміни. Спробуйте ще раз.");
+                }
+            }
+            else
+            {
+                // Логуємо помилки валідації
+                _logger.LogWarning("ModelState is invalid for Training ID {TrainingId}", id);
+                foreach (var modelState in ModelState)
+                {
+                    foreach (var error in modelState.Value.Errors)
+                    {
+                        _logger.LogError("Validation error for {Key}: {ErrorMessage}", modelState.Key, error.ErrorMessage);
+                    }
+                }
+            }
+
+            _logger.LogInformation("Returning to Edit view due to errors for Training ID {TrainingId}", id);
+            return View(training);
         }
     }
 }

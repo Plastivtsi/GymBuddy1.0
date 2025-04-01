@@ -26,9 +26,18 @@ namespace PL
 
             // Реєстрація DbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+                       .EnableSensitiveDataLogging()
+                       .EnableDetailedErrors());
 
             builder.Services.AddScoped<DbContext, ApplicationDbContext>();
+
+            builder.Services.AddLogging(logging =>
+            {
+                logging.AddConsole();
+                logging.AddDebug();
+                logging.SetMinimumLevel(LogLevel.Debug);
+            });
 
             // Реєстрація репозиторіїв та сервісів
             builder.Services.AddScoped<IUserRepository, UserRepository>();

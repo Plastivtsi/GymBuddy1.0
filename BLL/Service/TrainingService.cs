@@ -32,6 +32,16 @@ namespace BLL.Service
             await _trainingRepository.CreateTrainingAsync(training);
         }
 
+        public async Task UpdateTrainingAsync(Training training)
+        {
+            if (training == null)
+            {
+                throw new ArgumentNullException(nameof(training));
+            }
+
+            await _trainingRepository.UpdateTrainingAsync(training);
+        }
+
         public async Task<IEnumerable<Training>> SearchTrainingsAsync(string? name, DateTime? date, int? userId)
         {
             return await _trainingRepository.SearchTrainingsAsync(name, date, userId);
