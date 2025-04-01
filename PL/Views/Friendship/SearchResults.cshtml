@@ -1,5 +1,7 @@
 ﻿@{
     ViewBag.Title = "Search Results";
+    var friendships = ViewBag.Friendships as List<DAL.Models.Friendship>;
+    var userId = ViewBag.UserId;
 }
 
 <h2>Результати пошуку</h2>
@@ -15,10 +17,31 @@
     <ul>
         @foreach (var user in Model)
         {
+            var friendship = friendships?.FirstOrDefault(f =>
+            (f.User1Id == userId && f.User2Id == user.Id)||
+            (f.User1Id == user.Id && f.User2Id == userId));
+
             <li>
                 @user.Name
-                @* "Обробити кнопку " *@
-                <button class="add-friend-btn" data-user-id="@user.Id">Запит у друзі</button>
+                @if (friendship != null && friendship.Request == 0)
+                {
+                    <span>(Друг)</span>
+                }
+                else if (friendship != null && friendship.Request == 1)
+                {
+                    <span>(Запит надіслано)</span>
+                }
+                else if (friendship != null && friendship.Request == -1)
+                {
+                    <span>(Запит відхилено)</span>
+                }
+                else
+                {
+                    <form method="post" action="@Url.Action("Follow", "Friendship")" style="display:inline;">
+                        <input type="hidden" name="friendId" value="@user.Id" />
+                        <button type="submit">Надіслати запит</button>
+                    </form>
+                }
             </li>
         }
     </ul>

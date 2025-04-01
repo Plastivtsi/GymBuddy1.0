@@ -4,12 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - PL</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/PL.styles.css" asp-append-version="true" />
+      <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+      <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+      <link rel="stylesheet" href="~/PL.styles.css" asp-append-version="true" />
 </head>
 <body>
-    @if (ViewBag.Title != "Вхід" && ViewBag.Title != "Реєстрація")
+    @if (!string.IsNullOrEmpty(ViewBag.Title) && ViewBag.Title != "Вхід" && ViewBag.Title != "Реєстрація")
     {
         <header>
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
@@ -31,6 +31,14 @@
                     </div>
                 </div>
             </nav>
+           @*   <!-- Навігаційні кнопки -->
+             <div class="navigation-buttons" style="margin: 20px 0;">
+                 <a href="@Url.Action("Index", "Friendship")" class="btn btn-primary">Друзі</a>
+                 <a href="@Url.Action("Index", "Training")" class="btn btn-primary">Тренування</a>
+                 <a href="@Url.Action("Index", "Profile")" class="btn btn-primary">Профіль</a>
+                 <a href="@Url.Action("Index", "Calendar")" class="btn btn-primary">Календар</a>
+                 <a href="@Url.Action("Logout", "Account")" class="btn btn-danger">Вихід</a>
+             </div> *@
         </header>
     }
 

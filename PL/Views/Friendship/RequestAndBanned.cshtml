@@ -1,0 +1,52 @@
+﻿@model Tuple<List<DAL.Models.User>, List<DAL.Models.User>>
+
+@{
+    var friendshipRequests = Model.Item1;
+    var bannedUsers = Model.Item2;
+}
+
+<h2>Запити у друзі</h2>
+@if (friendshipRequests.Any())
+{
+    <ul>
+        @foreach (var user in friendshipRequests)
+        {
+            <li>
+                @user.Name (@user.Email)
+                <form method="post" action="/Friendship/AcceptRequest" style="display:inline;">
+                    <input type="hidden" name="friendId" value="@user.Id" />
+                    <button type="submit">Прийняти</button>
+                </form>
+                <form method="post" action="/Friendship/BlockUser" style="display:inline;">
+                    <input type="hidden" name="friendId" value="@user.Id" />
+                    <button type="submit">Заблокувати</button>
+                </form>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Немає нових запитів у друзі.</p>
+}
+
+<h2>Заблоковані користувачі</h2>
+@if (bannedUsers.Any())
+{
+    <ul>
+        @foreach (var user in bannedUsers)
+        {
+            <li>
+                @user.Name (@user.Email)
+                <form method="post" action="/Friendship/UnblockUser">
+                    <input type="hidden" name="friendId" value="@user.Id" />
+                    <button type="submit">Розблокувати</button>
+                </form>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Немає заблокованих користувачів.</p>
+}

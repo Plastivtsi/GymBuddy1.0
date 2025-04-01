@@ -1,5 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+   // Layout = "~/Views/Shared/_Layout.cshtml";
+
 }
 
 <!-- Відображення імені користувача -->
@@ -16,6 +18,8 @@
         <a href="@Url.Action("Index", "Profile")" class="btn btn-primary">Профіль</a>
         <a href="@Url.Action("Index", "Calendar")" class="btn btn-primary">Календар</a>
         <a href="@Url.Action("Logout", "Account")" class="btn btn-danger">Вихід</a>
+        <a href="@Url.Action("RequestAndBanned", "Friendship")" class="btn btn-primary">Запити</a>
+
     </div>
 
     <!-- Місце для графіка та звіту -->
