@@ -25,6 +25,10 @@ namespace BLL.Models
             _logger = logger;
         }
 
+        public FriendshipService(ApplicationDbContext context)
+        {
+        }
+
         public async Task<List<DAL.Models.User>> GetFriendsAsync(int userId)
         {
             try

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<DAL.Models.TrainingHistoryModel>
+﻿@model IEnumerable<BLL.Models.TrainingHistoryModel>
 
 @{
     ViewData["Title"] = "History";
@@ -16,7 +16,7 @@ else
         <thead>
             <tr>
                 <th>#</th>
-                <th>Дата</th>
+
                 <th>Вправи</th>
             </tr>
         </thead>
@@ -38,5 +38,10 @@ else
         </tbody>
     </table>
 }
+<style>
+    header, footer {
+        display: none;
+    }
+</style>
 
-<a href="@Url.Action("Index", "Home")" class="btn btn-primary">Назад</a>
+
