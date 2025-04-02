@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using DAL.Repositorie;
 using DAL.Models;
+using BLL.Models;
+using Training = DAL.Models.Training;
+
 
 namespace BLL.Service
 {
@@ -16,25 +19,21 @@ namespace BLL.Service
             _trainingHistoryRepository = trainingHistoryRepository;
         }
 
-        public async Task<IEnumerable<TrainingHistoryModel>> GetUserTrainingHistory(int userId)
+        public async Task<IEnumerable<DAL.Models.Training>> GetUserTrainingHistory(int userId)
         {
             var trainings = await _trainingHistoryRepository.GetUserTrainingHistory(userId);
 
-            return trainings.Select(t => new TrainingHistoryModel
+            return trainings.Select(t => new Training
             {
                 Id = t.Id,
                 Exercises = t.Exercises.Select(e => new Exercise
                 {
                     Name = e.Name,
                     Weight = e.Weight,
-                    Repetitions = e.Repetitions
-                }).ToList()
+                    Repetitions = e.Repetitions,
+                }).ToList(),
             });
         }
 
-        Task<IEnumerable<Training>> ITrainingHistoryService.GetUserTrainingHistory(int userId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

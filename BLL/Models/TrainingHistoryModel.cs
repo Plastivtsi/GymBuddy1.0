@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-namespace DAL.Models
+using DAL.Models;
+namespace BLL.Models
 {
     public class TrainingHistoryModel
     {
@@ -12,5 +12,4 @@ namespace DAL.Models
         public int UserId { get; set; }
         public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();
     }
-
 }

@@ -14,6 +14,7 @@ namespace PL
     using DAL.Interfaces;
     using DAL.Repositories;
     using DAL.Repositorie;
+    using Microsoft.AspNetCore.Authentication.Cookies;
 
     public class Program
     {
@@ -39,11 +40,15 @@ namespace PL
                 logging.SetMinimumLevel(LogLevel.Debug);
             });
 
+            builder.Services.AddAuthorization();
+
             // Реєстрація репозиторіїв та сервісів
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITrainingRepository, TrainingRepository>();
             builder.Services.AddScoped<ITrainingService, TrainingService>();
+            builder.Services.AddScoped<ITrainingHistoryService, TrainingHistoryService>();
+            builder.Services.AddScoped<ITrainingHistoryRepository, TrainingHistoryRepository>();
 
             builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();

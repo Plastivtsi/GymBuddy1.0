@@ -9,6 +9,9 @@
         <h1>Мої тренування</h1>
         <a href="@Url.Action("Create", "TrainingCreation")" class="btn btn-success">Створити тренування</a>
     </div>
+    <div class="navigation-buttons" style="margin: 20px 0;">
+        <a href="@Url.Action("Index", "TrainingHistory")" class="btn btn-success">Переглянути історію тренувань</a>
+     </div>
 
     @if (Model == null || !Model.Any())
     {
