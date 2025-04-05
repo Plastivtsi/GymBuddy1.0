@@ -26,14 +26,19 @@ namespace BLL.Service
             return trainings.Select(t => new Training
             {
                 Id = t.Id,
+                Name = t.Name,
+                Date = t.Date,
+                Time = t.Time,
+                Description = t.Description,
+                UserId = t.UserId,
                 Exercises = t.Exercises.Select(e => new Exercise
                 {
                     Name = e.Name,
                     Weight = e.Weight,
                     Repetitions = e.Repetitions,
+                    Template = e.Template
                 }).ToList(),
             });
         }
-
     }
 }
