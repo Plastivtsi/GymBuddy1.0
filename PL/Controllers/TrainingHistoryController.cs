@@ -47,6 +47,11 @@ namespace PL.Controllers
                 var historyModels = history.Select(training => new TrainingHistoryModel
                 {
                     Id = training.Id,
+                    Name = training.Name,
+                    Date = training.Date,
+                    Time = training.Time,
+                    Description = training.Description,
+                    UserId = training.UserId,
                     Exercises = training.Exercises.Select(exercise => new Exercise
                     {
                         Name = exercise.Name,
