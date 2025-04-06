@@ -11,14 +11,13 @@ namespace DAL.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
+        public string? Password { get; set; } 
         public double Weight { get; set; }
         public double Height { get; set; }
-        public bool Role { get; set; } // true = Admin, false = Non-Admin
+        public bool Role { get; set; }
 
-        // Навігаційні властивості
-        public List<Training> Trainings { get; set; }
-        public List<Friendship> FriendshipsAsUser1 { get; set; }
-        public List<Friendship> FriendshipsAsUser2 { get; set; }
+        public List<Training>? Trainings { get; set; } 
+        public List<Friendship>? FriendshipsAsUser1 { get; set; }
+        public List<Friendship>? FriendshipsAsUser2 { get; set; } 
     }
 }

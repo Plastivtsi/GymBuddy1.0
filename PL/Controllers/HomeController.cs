@@ -3,7 +3,8 @@ using PL.Models;
 using System.Diagnostics;
 using BLL.Service; // Додаємо для IUserService
 using DAL.Models;
-using DAL.Interfaces; // Додаємо для User
+using DAL.Interfaces;
+using BLL.Interfaces; // Додаємо для User
 
 namespace PL.Controllers
 {

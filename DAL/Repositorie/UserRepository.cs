@@ -20,59 +20,28 @@ namespace DAL.Repositories
 
         public void Update(User user)
         {
-            var existingUser = this.context.Users.FirstOrDefault(u => u.Id == user.Id);
-            if (existingUser != null)
+            try
             {
-                bool isModified = false;
-
-                if (existingUser.Name != user.Name)
+                var existingUser = context.Users.FirstOrDefault(u => u.Id == user.Id);
+                if (existingUser == null)
                 {
-                    existingUser.Name = user.Name;
-                    isModified = true;
+                    Log.Warning("User with ID {UserId} not found in database.", user.Id);
+                    throw new Exception($"User with ID {user.Id} not found.");
                 }
 
-                if (existingUser.Email != user.Email)
-                {
-                    existingUser.Email = user.Email;
-                    isModified = true;
-                }
+                existingUser.Name = user.Name;
+                existingUser.Email = user.Email;
+                existingUser.Weight = user.Weight;
+                existingUser.Height = user.Height;
 
-                if (existingUser.Weight != user.Weight)
-                {
-                    existingUser.Weight = user.Weight;
-                    isModified = true;
-                }
-
-                if (existingUser.Height != user.Height)
-                {
-                    existingUser.Height = user.Height;
-                    isModified = true;
-                }
-
-                if (isModified)
-                {
-                    try
-                    {
-                        var changes = this.context.SaveChanges();
-                        if (changes == 0)
-                        {
-                            throw new InvalidOperationException("No changes were made.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error saving changes: {ex.Message}");
-                        throw;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("No changes detected.");
-                }
+                Log.Information("Saving changes to database for user ID: {UserId}", user.Id);
+                context.SaveChanges();
+                Log.Information("Changes saved successfully for user ID: {UserId}", user.Id);
             }
-            else
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("User not found");
+                Log.Error(ex, "Error saving changes for user ID: {UserId}", user.Id);
+                throw;
             }
         }
     }
