@@ -1,10 +1,7 @@
 ﻿using DAL.Interfaces;
 using DAL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog;
+
 
 namespace BLL.Service
 {
@@ -19,12 +16,17 @@ namespace BLL.Service
 
         public User? GetUserById(string id)
         {
-            return _userRepository.GetById(int.Parse(id));
+            if (int.TryParse(id, out var userId))
+            {
+                return _userRepository.GetById(userId);
+            }
+            return null; // Повертаємо null, якщо ID не вірний
         }
 
         public void UpdateUser(User user)
         {
-            _userRepository.Update(user);
+            Log.Information("Оновлення користувача ID: {UserId}", user.Id);
+            _userRepository.Update(user); // Оновлюємо дані користувача
         }
     }
 }

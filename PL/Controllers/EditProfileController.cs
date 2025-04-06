@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DAL.Models;
 using DAL.Interfaces;
+using Serilog;
 
 namespace PL.Controllers
 {
@@ -20,13 +21,13 @@ namespace PL.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized();
+                return Unauthorized(); // Якщо користувач не авторизований
             }
 
             var user = _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(); // Якщо користувача не знайдено
             }
 
             return View(user); // Повертаємо модель користувача для редагування
@@ -35,13 +36,16 @@ namespace PL.Controllers
         [HttpPost]
         public IActionResult Edit(User model)
         {
+            Log.Information("Отримано оновлення для користувача ID: {UserId}", model.Id);
+
             if (ModelState.IsValid)
             {
-                _userService.UpdateUser(model); // Оновлюємо дані користувача
-                return RedirectToAction("Profile", "Index"); // Перенаправляємо на профіль
+                _userService.UpdateUser(model);
+                TempData["SuccessMessage"] = "Зміни збережено!";
+                return RedirectToAction("Profile", "Index");
             }
 
-            return View(model); // Повертаємо назад на сторінку редагування з помилками
+            return View(model);
         }
     }
 }
