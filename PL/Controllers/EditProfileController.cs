@@ -19,7 +19,7 @@ namespace PL.Controllers
         public async Task<IActionResult> Edit()
         {
             // �������� ID ����������� � Claims
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = this.User?.Identity?.Name;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -45,7 +45,7 @@ namespace PL.Controllers
 
             // ������ ���� ����� ��� ������
             Log.Information("Model values: Id={Id}, Name={Name}, Email={Email}, Weight={Weight}, Height={Height}",
-                model.Id, model.Name, model.Email, model.Weight, model.Height);
+                model.Id, model.UserName, model.Email, model.Weight, model.Height);
 
             if (!ModelState.IsValid)
             {
@@ -68,13 +68,13 @@ namespace PL.Controllers
                     return NotFound();
                 }
 
-                existingUser.Name = model.Name;
-                existingUser.Email = model.Email;
-                existingUser.Weight = model.Weight;
-                existingUser.Height = model.Height;
+                //existingUser.UserName = model.UserName;
+                //existingUser.Email = model.Email;
+                //existingUser.Weight = model.Weight;
+                //existingUser.Height = model.Height;
 
                 Log.Information("Updating user profile for user ID: {UserId}", model.Id);
-                _userService.UpdateUser(existingUser);
+                _userService.UpdateUser(model);
                 TempData["SuccessMessage"] = "���� ���������!";
                 Log.Information("User profile updated successfully for user ID: {UserId}", model.Id);
                 return RedirectToAction("Profile", "Index");
