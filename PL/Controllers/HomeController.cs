@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using PL.Models;
 using System.Diagnostics;
-using BLL.Service; // Додаємо для IUserService
+using BLL.Service; // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ IUserService
 using DAL.Models;
-using DAL.Interfaces; // Додаємо для User
+using DAL.Interfaces; // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ User
 using Microsoft.AspNetCore.Identity;
 
 
@@ -19,7 +19,7 @@ namespace PL.Controllers
             _userManager = userManager;
             _logger = logger;
 
-            //_userService = userService; // Ініціалізуємо через DI
+            //_userService = userService; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ DI
         }
 
         public IActionResult Index()
@@ -29,27 +29,27 @@ namespace PL.Controllers
 
         public IActionResult Profile()
         {
-            // Отримуємо ID користувача з сесії
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ
             var userId = HttpContext.Session.GetInt32("UserId");
 
             if (userId==0)
             {
-                // Якщо користувач не авторизований, перенаправляємо на сторінку входу
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 return RedirectToAction("Login", "Account");
             }
 
-            // Отримуємо користувача через сервіс
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             var user =  _userManager.GetUserAsync(User);
             //userId = user1.Id;
             //var user = _userService.GetUserById(userId.ToString());
 
             if (user == null)
             {
-                // Якщо користувача не знайдено, показуємо помилку або перенаправляємо
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 return RedirectToAction("Error");
             }
 
-            // Передаємо модель у представлення
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             return View(user);
         }
 

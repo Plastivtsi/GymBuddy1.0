@@ -1,4 +1,4 @@
-﻿using DAL.Models;
+using DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
 using System.Threading.Tasks;

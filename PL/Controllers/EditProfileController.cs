@@ -18,35 +18,73 @@ namespace PL.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit()
         {
-            var userId = this.User?.Identity?.Name;
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Claims
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(); // Якщо користувач не авторизований
+                Log.Error("User is not authenticated.");
+                return Unauthorized(); // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(); // Якщо користувача не знайдено
+                Log.Warning("User with ID {UserId} not found.", userId);
+                return NotFound(); // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
 
-            return View(user); // Повертаємо модель користувача для редагування
+            Log.Information("Loaded user profile for editing: {UserId}", userId);
+            return View(user); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(User model)
         {
-            Log.Information("Отримано оновлення для користувача ID: {UserId}", model.Id);
+            Log.Information("Received update for user ID: {UserId}", model.Id);
 
-            if (ModelState.IsValid)
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+            Log.Information("Model values: Id={Id}, Name={Name}, Email={Email}, Weight={Weight}, Height={Height}",
+                model.Id, model.Name, model.Email, model.Weight, model.Height);
+
+            if (!ModelState.IsValid)
             {
-                _userService.UpdateUser(model);
-                TempData["SuccessMessage"] = "Зміни збережено!";
-                return RedirectToAction("Profile", "Index");
+                foreach (var modelState in ModelState)
+                {
+                    foreach (var error in modelState.Value.Errors)
+                    {
+                        Log.Error("Validation error for {Field}: {ErrorMessage}", modelState.Key, error.ErrorMessage);
+                    }
+                }
+                return View(model);
             }
 
-            return View(model);
+            try
+            {
+                var existingUser = _userService.GetUserById(model.Id.ToString());
+                if (existingUser == null)
+                {
+                    Log.Warning("User with ID {UserId} not found.", model.Id);
+                    return NotFound();
+                }
+
+                existingUser.Name = model.Name;
+                existingUser.Email = model.Email;
+                existingUser.Weight = model.Weight;
+                existingUser.Height = model.Height;
+
+                Log.Information("Updating user profile for user ID: {UserId}", model.Id);
+                _userService.UpdateUser(existingUser);
+                TempData["SuccessMessage"] = "пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!";
+                Log.Information("User profile updated successfully for user ID: {UserId}", model.Id);
+                return RedirectToAction("Profile", "Index");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while updating user profile for user ID: {UserId}", model.Id);
+                TempData["ErrorMessage"] = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.";
+                return View(model);
+            }
         }
     }
 }
