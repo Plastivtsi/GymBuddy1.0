@@ -34,7 +34,7 @@ namespace BLL.Models
             try
             {
                 var friends = _context.Friendships
-                    .Where(f => (f.User1Id == userId || f.User2Id == userId) && f.Request == 0 )
+                    .Where(f => (f.User1Id == userId || f.User2Id == userId) && f.Request == 0)
                     .Select(f => f.User1Id == userId ? f.User2 : f.User1)
                     .ToList();
 
@@ -47,15 +47,16 @@ namespace BLL.Models
             }
         }
 
-        public async Task<List<DAL.Models.User>> SearchUserByName(string name)
+        public async Task<List<User>> SearchUserByName(string name)
         {
             if (string.IsNullOrEmpty(name))
                 return new List<User>();
 
             return await _context.Users
-                .Where(u => u.Name.Contains(name))
+                .Where(u => u.UserName.Contains(name))
                 .ToListAsync();
         }
+
         public async Task Unfollow(int userId1, int userId2)
         {
             var friendship = await _context.Friendships
@@ -91,7 +92,8 @@ namespace BLL.Models
                 _context.Friendships.Add(friendship);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Запит на дружбу надіслано");
-            }else
+            }
+            else
             {
                 // Якщо запис уже існує, можна або пропустити, або оновити статус
                 if (existingFriendship.Request != 0) // Якщо це не підтверджена дружба
@@ -119,11 +121,11 @@ namespace BLL.Models
         {
             var friendship = await _context.Friendships
             .FirstOrDefaultAsync(f =>
-                (f.User1Id == userId2 && f.User2Id == userId1) );
+                (f.User1Id == userId2 && f.User2Id == userId1));
 
             if (friendship != null)
             {
-                friendship.Request = - 1;
+                friendship.Request = -1;
             }
 
             await _context.SaveChangesAsync();
@@ -132,7 +134,7 @@ namespace BLL.Models
         {
             var friendship = await _context.Friendships
             .FirstOrDefaultAsync(f =>
-                (f.User1Id == userId2 && f.User2Id == userId1 && f.Request==-1));
+                (f.User1Id == userId2 && f.User2Id == userId1 && f.Request == -1));
 
             if (friendship != null)
             {
@@ -187,5 +189,5 @@ namespace BLL.Models
 
     }
 
-    
+
 }

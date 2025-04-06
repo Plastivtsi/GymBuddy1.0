@@ -1,7 +1,7 @@
 ﻿@{
     ViewBag.Title = "Реєстрація";
 }
-@model IEnumerable<DAL.Models.User>
+@* @model IEnumerable<DAL.Models.User> *@
 
 <div class="container-center">
     <h2>Реєстрація</h2>
@@ -11,7 +11,7 @@
         <p style="color:red">@ViewBag.Error</p>
     }
 
-    <form method="post" asp-controller="Account" asp-action="CreateUser">
+    <form method="post" asp-controller="Account" asp-action="Register">
         <label for="nickname">Ім'я:</label>
         <input type="text" id="nickname" name="nickname" required />
 

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using DAL.Models;
-using BLL.Interfaces;
+using BLL.Service;
 using Serilog;
-using System.Security.Claims;
+
 
 namespace PL.Controllers
 {
@@ -16,35 +16,34 @@ namespace PL.Controllers
         }
 
         [HttpGet]
-        public IActionResult Edit()
+        public async Task<IActionResult> Edit()
         {
-            // Отримуємо ID користувача з Claims
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Claims
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
             {
                 Log.Error("User is not authenticated.");
-                return Unauthorized(); // Якщо користувач не авторизований
+                return Unauthorized(); // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
 
-            // Перевіряємо чи знайдений користувач
-            var user = _userService.GetUserById(userId);
+            var user = await _userService.GetUserById(userId);
             if (user == null)
             {
                 Log.Warning("User with ID {UserId} not found.", userId);
-                return NotFound(); // Якщо користувача не знайдено
+                return NotFound(); // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
 
             Log.Information("Loaded user profile for editing: {UserId}", userId);
-            return View(user); // Повертаємо користувача для редагування
+            return View(user); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
 
         [HttpPost]
-        public IActionResult Edit([Bind("Id,Name,Email,Weight,Height")] User model)
+        public async Task<IActionResult> Edit(User model)
         {
             Log.Information("Received update for user ID: {UserId}", model.Id);
 
-            // Логуємо стан моделі для дебагу
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             Log.Information("Model values: Id={Id}, Name={Name}, Email={Email}, Weight={Weight}, Height={Height}",
                 model.Id, model.Name, model.Email, model.Weight, model.Height);
 
@@ -76,16 +75,17 @@ namespace PL.Controllers
 
                 Log.Information("Updating user profile for user ID: {UserId}", model.Id);
                 _userService.UpdateUser(existingUser);
-                TempData["SuccessMessage"] = "Зміни збережено!";
+                TempData["SuccessMessage"] = "пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!";
                 Log.Information("User profile updated successfully for user ID: {UserId}", model.Id);
                 return RedirectToAction("Profile", "Index");
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error occurred while updating user profile for user ID: {UserId}", model.Id);
-                TempData["ErrorMessage"] = "Сталася помилка при оновленні профілю.";
+                TempData["ErrorMessage"] = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.";
                 return View(model);
             }
         }
     }
 }
+

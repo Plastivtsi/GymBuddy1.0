@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Security.Claims;
 using BLL.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace PL.Controllers
 {
@@ -13,9 +14,11 @@ namespace PL.Controllers
     {
         private readonly ITrainingService _trainingService;
         private readonly ILogger<TrainingCreationController> _logger;
+        private readonly UserManager<User> _userManager;
 
-        public TrainingCreationController(ITrainingService trainingService, ILogger<TrainingCreationController> logger)
+        public TrainingCreationController(UserManager<User> userManager, ITrainingService trainingService, ILogger<TrainingCreationController> logger)
         {
+            _userManager = userManager;
             _trainingService = trainingService;
             _logger = logger;
         }
@@ -53,7 +56,8 @@ namespace PL.Controllers
                 int userId;
                 if (!int.TryParse(userIdString, out userId))
                 {
-                    userId = Autorization.CurrentUserId;
+                    var user = await _userManager.GetUserAsync(User);
+                    userId = user.Id;
                     if (userId == 0) // Перевіряємо, чи встановлений CurrentUserId
                     {
                         _logger.LogError("User is not authenticated and Autorization.CurrentUserId is not set.");

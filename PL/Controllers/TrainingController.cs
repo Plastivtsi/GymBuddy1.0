@@ -6,26 +6,31 @@ using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using BLL.Models;
 using DAL.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using BLL.Service;
 
 namespace PL.Controllers
 {
     public class TrainingController : Controller
     {
         private readonly ITrainingService _trainingService;
-        private readonly IUserService _userService;
         private readonly ILogger<TrainingController> _logger;
+        private readonly UserManager<User> _userManager;
 
-        public TrainingController(ITrainingService trainingService, IUserService userService, ILogger<TrainingController> logger)
+
+        public TrainingController(UserManager<User> userManager,ITrainingService trainingService, ILogger<TrainingController> logger)
         {
+            _userManager = userManager;
             _trainingService = trainingService;
-            _userService = userService;
             _logger = logger;
         }
 
         public async Task<IActionResult> Index()
         {
-            var userId = Autorization.CurrentUserId;
-            var user = _userService.GetUserById(userId.ToString());
+            var user = await _userManager.GetUserAsync(User);
+            var userId = user.Id;
+            
+
 
             if (user == null)
             {

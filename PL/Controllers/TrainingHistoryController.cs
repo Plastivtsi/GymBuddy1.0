@@ -7,6 +7,7 @@ using System;
 using BLL.Models;
 using DAL.Models;
 using System.Linq;
+using Microsoft.AspNetCore.Identity;
 
 namespace PL.Controllers
 {
@@ -14,9 +15,11 @@ namespace PL.Controllers
     {
         private readonly ITrainingHistoryService _trainingHistoryService;
         private readonly ILogger<TrainingHistoryController> _logger;
+        private readonly UserManager<User> _userManager;
 
-        public TrainingHistoryController(ITrainingHistoryService trainingHistoryService, ILogger<TrainingHistoryController> logger)
+        public TrainingHistoryController(UserManager<User> userManager,ITrainingHistoryService trainingHistoryService, ILogger<TrainingHistoryController> logger)
         {
+            _userManager = userManager;
             _trainingHistoryService = trainingHistoryService;
             _logger = logger;
         }
@@ -29,7 +32,8 @@ namespace PL.Controllers
             int userId;
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out userId))
             {
-                userId = Autorization.CurrentUserId;
+                var user = await _userManager.GetUserAsync(User);
+                userId = user.Id;
                 if (userId == 0) // Якщо немає користувача, перенаправляємо на сторінку входу
                 {
                     _logger.LogError("User is not authenticated and Autorization.CurrentUserId is not set.");

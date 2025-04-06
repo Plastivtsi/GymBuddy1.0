@@ -1,6 +1,7 @@
 ﻿using BLL.Models;
 using BLL.Models.Interfaces;
 using DAL.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -10,17 +11,22 @@ namespace PL.Controllers
     public class FriendshipController : Controller
     {
         private readonly IFriendshipService _friendshipService;
-        int userId = Autorization.CurrentUserId;
+        private readonly UserManager<User> _userManager;
 
-        public FriendshipController(IFriendshipService friendshipService)
+        int userId;
+
+        public FriendshipController(UserManager<User> userManager,IFriendshipService friendshipService)
         {
+            _userManager = userManager;
             _friendshipService = friendshipService;
+            
         }
 
         public async Task<IActionResult> Index()
         {
             //var userId = Autorization.CurrentUserId;
-
+            var user = _userManager.GetUserAsync(User);
+            var userId = user.Id;
             ViewBag.UserId = userId;
             var friends = await _friendshipService.GetFriendsAsync(userId);
 
@@ -30,7 +36,10 @@ namespace PL.Controllers
         public async Task<IActionResult> Search(string name)
         {
             //var userId = Autorization.CurrentUserId;
-            int userId = Autorization.CurrentUserId;
+
+            var user = _userManager.GetUserAsync(User);
+            var userId = user.Id;
+
             var users = await _friendshipService.SearchUserByName(name);
             var friendships = await _friendshipService.GetFriendshipRequests(userId);
 
@@ -50,7 +59,7 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> Unfollow(int friendId)
         {
-            await _friendshipService.Unfollow(userId,friendId);
+            await _friendshipService.Unfollow(userId, friendId);
             return RedirectToAction("Index");
         }
         [HttpPost]

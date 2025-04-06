@@ -12,9 +12,10 @@ namespace PL
     using BLL.Service;
     using BLL.Interfaces;
     using DAL.Interfaces;
-    using DAL.Repositories;
+    //using DAL.Repositories;
     using DAL.Repositorie;
     using Microsoft.AspNetCore.Authentication.Cookies;
+    using Microsoft.AspNetCore.Identity;
 
     public class Program
     {
@@ -30,6 +31,16 @@ namespace PL
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors());
+            builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
+            {
+                options.Password.RequiredLength = 6; // Залишаємо мінімальну довжину 6 символів
+                options.Password.RequireDigit = false; // Вимикаємо вимогу цифр
+                options.Password.RequireLowercase = false; // Вимикаємо вимогу малих букв
+                options.Password.RequireUppercase = false; // Вимикаємо вимогу великих букв
+                options.Password.RequireNonAlphanumeric = false; // Вимикаємо вимогу спеціальних символів
+                options.Password.RequiredUniqueChars = 1; // Вимикаємо вимогу унікальних символів (можна залишити 1)
+            }).AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
             builder.Services.AddScoped<DbContext, ApplicationDbContext>();
 
@@ -39,18 +50,28 @@ namespace PL
                 logging.AddDebug();
                 logging.SetMinimumLevel(LogLevel.Debug);
             });
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.LoginPath = "/Account/Login";
+                options.AccessDeniedPath = "/Account/AccessDenied";
+                options.SlidingExpiration = true;
+            });
+
+            builder.Services.AddControllersWithViews();
 
             builder.Services.AddAuthorization();
 
             // Реєстрація репозиторіїв та сервісів
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
+           
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITrainingRepository, TrainingRepository>();
             builder.Services.AddScoped<ITrainingService, TrainingService>();
             builder.Services.AddScoped<ITrainingHistoryService, TrainingHistoryService>();
             builder.Services.AddScoped<ITrainingHistoryRepository, TrainingHistoryRepository>();
 
-            builder.Services.AddScoped<ICreateUser, Autorization>();
+           // builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();
 
@@ -74,6 +95,7 @@ namespace PL
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseSession();
 

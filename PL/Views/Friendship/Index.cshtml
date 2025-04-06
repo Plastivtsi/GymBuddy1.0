@@ -21,7 +21,7 @@ else
         @foreach (var friend in Model)
         {
             <li>
-                @friend.Name (@friend.Email)
+                @friend.UserName (@friend.Email)
                 <form method="post" action="@Url.Action("Unfollow", "Friendship")" style="display:inline;">
                     <input type="hidden" name="friendId" value="@friend.Id" />
                     <button type="submit" class="btn btn-danger btn-sm">Відмінити слідкування</button>
