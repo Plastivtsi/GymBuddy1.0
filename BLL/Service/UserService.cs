@@ -1,32 +1,58 @@
-﻿using DAL.Interfaces;
-using DAL.Models;
+﻿using DAL.Models;
+using Microsoft.AspNetCore.Identity;
 using Serilog;
-
+using System.Threading.Tasks;
 
 namespace BLL.Service
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly UserManager<User> _userManager;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(UserManager<User> userManager)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
         }
 
-        public User? GetUserById(string id)
+       
+        public async Task<User?> GetUserById(string id)
         {
-            if (int.TryParse(id, out var userId))
+            // Отримуємо користувача за ID через UserManager
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
             {
-                return _userRepository.GetById(userId);
+                Log.Warning("Користувача з ID {UserId} не знайдено", id);
+                return null;
             }
-            return null; // Повертаємо null, якщо ID не вірний
+
+            Log.Information("Отримано користувача з ID {UserId}", id);
+            return user;
         }
 
-        public void UpdateUser(User user)
+       
+        public async Task UpdateUser(User user)
         {
+            if (user == null)
+            {
+                Log.Error("Спроба оновити null користувача");
+                throw new ArgumentNullException(nameof(user));
+            }
+
             Log.Information("Оновлення користувача ID: {UserId}", user.Id);
-            _userRepository.Update(user); // Оновлюємо дані користувача
+          
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    Log.Error("Помилка оновлення користувача ID {UserId}: {Description}", user.Id, error.Description);
+                }
+                throw new InvalidOperationException("Не вдалося оновити користувача");
+            }
+
+            Log.Information("Користувача ID {UserId} успішно оновлено", user.Id);
         }
     }
 }

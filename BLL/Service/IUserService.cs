@@ -1,10 +1,10 @@
 using DAL.Models;
 
-namespace DAL.Interfaces
+namespace BLL.Service
 {
     public interface IUserService
     {
-        User GetUserById(string id);
-        void UpdateUser(User user);
+        Task<User?> GetUserById(string id);
+        Task UpdateUser(User user);
     }
 }

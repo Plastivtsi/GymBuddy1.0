@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using DAL.Models;
-using DAL.Interfaces;
+using BLL.Service;
 using Serilog;
+
 
 namespace PL.Controllers
 {
@@ -15,7 +16,7 @@ namespace PL.Controllers
         }
 
         [HttpGet]
-        public IActionResult Edit()
+        public async Task<IActionResult> Edit()
         {
             var userId = this.User?.Identity?.Name;
 
@@ -24,7 +25,7 @@ namespace PL.Controllers
                 return Unauthorized(); // Якщо користувач не авторизований
             }
 
-            var user = _userService.GetUserById(userId);
+            var user = await _userService.GetUserById(userId);
             if (user == null)
             {
                 return NotFound(); // Якщо користувача не знайдено
@@ -34,7 +35,7 @@ namespace PL.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(User model)
+        public async Task<IActionResult> Edit(User model)
         {
             Log.Information("Отримано оновлення для користувача ID: {UserId}", model.Id);
 
@@ -49,3 +50,4 @@ namespace PL.Controllers
         }
     }
 }
+

@@ -5,19 +5,23 @@ using System.Threading.Tasks;
 using DAL.Models;
 using BLL.Models;
 using BLL.Models.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace PL.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly ICreateUser _createUser;
-
-       // private readonly Autorization _authorization;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ICreateUser createUser, ILogger<AccountController> logger)
+        
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger)
         {
-            _createUser = createUser ?? throw new ArgumentNullException(nameof(createUser));
+            _userManager = userManager;
+            _signInManager = signInManager;
             _logger = logger;
         }
 
@@ -27,20 +31,22 @@ namespace PL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser(string nickname, string email, string password)
+        public async Task<IActionResult> Register(string nickname, string email, string password)
         {
-            try
+            var user = new User { UserName = nickname, Email = email };
+
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
             {
-                await _createUser.CreateNewUser(nickname,email,password);
-                _logger.LogInformation("Користувач {Nickname} успішно зареєстрований.", nickname);
-                return RedirectToAction("Login");
+                _logger.LogInformation("User {Nickname} created a new account.", nickname);
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Home");
             }
-            catch (Exception ex)
+            foreach (var error in result.Errors)
             {
-                _logger.LogWarning("Помилка реєстрації користувача {Nickname}.",nickname);
-                ViewBag.Error = ex.Message;
-                return View("Register");
-            }          
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View();
         }
 
         public ActionResult Login()
@@ -49,35 +55,48 @@ namespace PL.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(string loginUsername, string loginPassword)
+        public async Task<IActionResult> Login(string loginUsername, string loginPassword)
         {
-            try
+            var result = await _signInManager.PasswordSignInAsync(loginUsername, loginPassword, isPersistent: false, lockoutOnFailure: false);
+            var user = await _userManager.FindByNameAsync(loginUsername);
+            if (user != null)
             {
-                if (((Autorization)_createUser).Login(loginUsername, loginPassword))
+                if (await _userManager.IsInRoleAsync(user, "Blocked"))
                 {
-                    HttpContext.Session.SetInt32("UserID", Autorization.CurrentUserId);
-                    _logger.LogInformation("Користувач {Username} успішно увійшов у систему.", loginUsername);
-                    return RedirectToAction("Index", "Home");
-                }
-                else
-                {
-                    _logger.LogWarning("Невдала спроба входу для {Username}.", loginUsername);
-                    ViewBag.Error = "Невірні дані для входу";
+                    ViewBag.Error = $"Ваш акаунт було заблоковано адміністратором. Причина: {user.BlockedReason}";
+                    return View();
                 }
             }
-            catch (Exception ex)
+            if (result.Succeeded)
             {
-                _logger.LogError(ex, "Помилка входу користувача {Username}.", loginUsername);
-                ViewBag.Error = ex.Message;
+                _logger.LogInformation("User {Username} logged in.", loginUsername);
+                return RedirectToAction("Index", "Home");
             }
-
-            return View();
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return View();
+            }
         }
 
-        public ActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("User logged out.");
             HttpContext.Session.Clear();
             return RedirectToAction("Login");
         }
+        [HttpPost]
+        public async Task<IActionResult> AssignRole(int userId, string role)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null && !await _userManager.IsInRoleAsync(user, role))
+            {
+                await _userManager.AddToRoleAsync(user, role);
+                return Ok($"Role '{role}' assigned to user {user.UserName}");
+            }
+            return BadRequest("User not found or already in role");
+        }
+
     }
 }

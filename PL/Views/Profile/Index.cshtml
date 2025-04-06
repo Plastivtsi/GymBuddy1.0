@@ -1,37 +1,38 @@
-﻿@model DAL.Models.User
+﻿  @model DAL.Models.User
 
-@{
-    ViewData["Title"] = "Profile";
-}
+  @{
+      ViewData["Title"] = "Profile";
+  }
 
-<div class="container mt-5">
-    <h2 class="text-center">Ваш профіль</h2>
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Інформація</h5>
-            <hr />
-            <dl class="row">
-                <dt class="col-sm-3">Ім'я:</dt>
-                <dd class="col-sm-9">@Model.Name</dd>
+  <div class="container mt-5">
+      <h2 class="text-center">Ваш профіль</h2>
+      <div class="card mt-4">
+          <div class="card-body">
+              <h5 class="card-title">Інформація</h5>
+              <hr />
+              <dl class="row">
+                  <dt class="col-sm-3">Ім'я:</dt>
+                <dd class="col-sm-9">@Model.UserName</dd>
 
-                <dt class="col-sm-3">Email:</dt>
-                <dd class="col-sm-9">@Model.Email</dd>
+                  <dt class="col-sm-3">Email:</dt>
+                  <dd class="col-sm-9">@Model.Email</dd>
 
-                <dt class="col-sm-3">Вага:</dt>
-                <dd class="col-sm-9">@Model.Weight</dd>
+                  <dt class="col-sm-3">Вага:</dt>
+                  <dd class="col-sm-9">@Model.Weight</dd>
 
-                <dt class="col-sm-3">Зріст:</dt>
-                <dd class="col-sm-9">@Model.Height</dd>
-            </dl>
-            <div class="text-center mt-4">
-                <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
-            </div>
-        </div>
-    </div>
-</div>
+                  <dt class="col-sm-3">Зріст:</dt>
+                  <dd class="col-sm-9">@Model.Height</dd>
+              </dl>
+              <div class="text-center mt-4">
+                  <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
+              </div>
+          </div>
+      </div>
+  </div>
 
-<style>
-    header, footer {
-        display: none;
-    }
-</style>
+  <style>
+      header, footer {
+          display: none;
+      }
+  </style>
+ 

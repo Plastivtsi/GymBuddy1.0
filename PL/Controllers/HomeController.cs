@@ -4,17 +4,22 @@ using System.Diagnostics;
 using BLL.Service; // Додаємо для IUserService
 using DAL.Models;
 using DAL.Interfaces; // Додаємо для User
+using Microsoft.AspNetCore.Identity;
+
 
 namespace PL.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        public readonly IUserService _userService;
-        public HomeController(ILogger<HomeController> logger, IUserService userService)
+        private readonly UserManager<User> _userManager;
+
+        public HomeController(ILogger<HomeController> logger, UserManager<User> userManager)
         {
+            _userManager = userManager;
             _logger = logger;
-            _userService = userService; // Ініціалізуємо через DI
+
+            //_userService = userService; // Ініціалізуємо через DI
         }
 
         public IActionResult Index()
@@ -25,16 +30,18 @@ namespace PL.Controllers
         public IActionResult Profile()
         {
             // Отримуємо ID користувача з сесії
-            var userId = HttpContext.Session.GetString("UserId");
+            var userId = HttpContext.Session.GetInt32("UserId");
 
-            if (string.IsNullOrEmpty(userId))
+            if (userId==0)
             {
                 // Якщо користувач не авторизований, перенаправляємо на сторінку входу
                 return RedirectToAction("Login", "Account");
             }
 
             // Отримуємо користувача через сервіс
-            var user = _userService.GetUserById(userId);
+            var user =  _userManager.GetUserAsync(User);
+            //userId = user1.Id;
+            //var user = _userService.GetUserById(userId.ToString());
 
             if (user == null)
             {
