@@ -22,12 +22,25 @@ namespace DAL.Repositories
         {
             try
             {
-                context.Users.Update(user); // позначаємо як Modified
-                context.SaveChanges();      // зберігаємо
+                var existingUser = context.Users.FirstOrDefault(u => u.Id == user.Id);
+                if (existingUser == null)
+                {
+                    Log.Warning("User with ID {UserId} not found in database.", user.Id);
+                    throw new Exception($"User with ID {user.Id} not found.");
+                }
+
+                existingUser.Name = user.Name;
+                existingUser.Email = user.Email;
+                existingUser.Weight = user.Weight;
+                existingUser.Height = user.Height;
+
+                Log.Information("Saving changes to database for user ID: {UserId}", user.Id);
+                context.SaveChanges();
+                Log.Information("Changes saved successfully for user ID: {UserId}", user.Id);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving changes: {ex.Message}");
+                Log.Error(ex, "Error saving changes for user ID: {UserId}", user.Id);
                 throw;
             }
         }
