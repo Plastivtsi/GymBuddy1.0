@@ -50,6 +50,28 @@ namespace DAL.Models
             modelBuilder.Entity<Training>()
                 .Property(t => t.Date)
                 .IsRequired(false);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Name)
+                .IsRequired()
+            .HasMaxLength(100); // Додаємо максимальну довжину для імені
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(255); // Для email можна додати максимальну довжину
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Weight)
+                .IsRequired(); // Вага обов'язкова для кожного користувача
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Height)
+                .IsRequired(); // Зріст також
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email) // Створюємо індекс на Email для покращення пошуку
+                .IsUnique();
         }
     }
 

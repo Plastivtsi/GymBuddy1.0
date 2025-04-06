@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using DAL.Models;
-using DAL.Interfaces;
+using BLL.Interfaces;
 using Serilog;
+using System.Security.Claims;
 
 namespace PL.Controllers
 {
@@ -17,20 +18,22 @@ namespace PL.Controllers
         [HttpGet]
         public IActionResult Edit()
         {
-            var userId = this.User?.Identity?.Name;
+            // ќтримуЇмо ID користувача з Claims
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized(); // якщо користувач не авторизований
             }
 
+            // ѕерев≥р€Їмо чи знайдений користувач
             var user = _userService.GetUserById(userId);
             if (user == null)
             {
                 return NotFound(); // якщо користувача не знайдено
             }
 
-            return View(user); // ѕовертаЇмо модель користувача дл€ редагуванн€
+            return View(user); // ѕовертаЇмо користувача дл€ редагуванн€
         }
 
         [HttpPost]
@@ -40,12 +43,12 @@ namespace PL.Controllers
 
             if (ModelState.IsValid)
             {
-                _userService.UpdateUser(model);
+                _userService.UpdateUser(model); // ќновлюЇмо дан≥ користувача
                 TempData["SuccessMessage"] = "«м≥ни збережено!";
-                return RedirectToAction("Profile", "Index");
+                return RedirectToAction("Profile", "Index"); // ѕеренаправленн€ на стор≥нку проф≥лю
             }
 
-            return View(model);
+            return View(model); // якщо модель не вал≥дна, повертаЇмо назад на форму
         }
     }
 }

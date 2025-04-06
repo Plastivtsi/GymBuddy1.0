@@ -1,6 +1,6 @@
 using DAL.Models;
 
-namespace DAL.Interfaces
+namespace BLL.Interfaces
 {
     public interface IUserService
     {

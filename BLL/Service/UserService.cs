@@ -1,5 +1,7 @@
-﻿using DAL.Interfaces;
+﻿using BLL.Interfaces;
+using DAL.Interfaces;
 using DAL.Models;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 
@@ -25,8 +27,7 @@ namespace BLL.Service
 
         public void UpdateUser(User user)
         {
-            Log.Information("Оновлення користувача ID: {UserId}", user.Id);
-            _userRepository.Update(user); // Оновлюємо дані користувача
+            _userRepository.Update(user);
         }
     }
 }
