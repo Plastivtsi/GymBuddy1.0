@@ -19,7 +19,7 @@ namespace PL
 
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +33,9 @@ namespace PL
                        .EnableDetailedErrors());
             builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
             {
+                options.User.AllowedUserNameCharacters = null; // Дозволяє будь-які символи
+                options.User.RequireUniqueEmail = false;
+
                 options.Password.RequiredLength = 6; // Залишаємо мінімальну довжину 6 символів
                 options.Password.RequireDigit = false; // Вимикаємо вимогу цифр
                 options.Password.RequireLowercase = false; // Вимикаємо вимогу малих букв
@@ -86,6 +89,34 @@ namespace PL
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+                // Перевіряємо, чи існує роль "User"
+                if (!await roleManager.RoleExistsAsync("User"))
+                {
+                    // Створюємо роль "User", якщо її немає
+                    var role = new IdentityRole<int> { Name = "User" };
+                    var result = await roleManager.CreateAsync(role);
+                    Log.Information("Роль 'User' створено");
+                }
+                // Опціонально: створюємо роль "Admin" (якщо потрібно)
+                if (!await roleManager.RoleExistsAsync("Admin"))
+                {
+                    var role = new IdentityRole<int> { Name = "Admin" };
+                    await roleManager.CreateAsync(role);
+
+                }
+                if (!await roleManager.RoleExistsAsync("Blocked"))
+                {
+                    var role = new IdentityRole<int> { Name = "Blocked" };
+                    await roleManager.CreateAsync(role);
+
+                }
+
+            }
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -104,7 +135,7 @@ namespace PL
                 pattern: "{controller=Account}/{action=Login}/{id?}");
 
             Log.Information("Застосунок запущено");
-            app.Run();
+            await app.RunAsync(); 
         }
     }
 }
