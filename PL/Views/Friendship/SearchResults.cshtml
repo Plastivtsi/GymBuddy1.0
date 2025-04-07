@@ -1,5 +1,6 @@
 ﻿@{
     ViewBag.Title = "Search Results";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var friendships = ViewBag.Friendships as List<DAL.Models.Friendship>;
     var userId = ViewBag.UserId;
 }
@@ -22,7 +23,7 @@
             (f.User1Id == user.Id && f.User2Id == userId));
 
             <li>
-                @user.Name
+                @user.UserName
                 @if (friendship != null && friendship.Request == 0)
                 {
                     <span>(Друг)</span>
@@ -49,5 +50,5 @@
 else
 {
     <p>@ViewBag.Message</p>
-    //<p>Не знайдено користувача з таким ім'ям.</p>
+    
 }

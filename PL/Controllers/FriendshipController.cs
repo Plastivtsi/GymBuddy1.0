@@ -13,20 +13,19 @@ namespace PL.Controllers
         private readonly IFriendshipService _friendshipService;
         private readonly UserManager<User> _userManager;
 
-        int userId;
+        
 
         public FriendshipController(UserManager<User> userManager,IFriendshipService friendshipService)
         {
             _userManager = userManager;
             _friendshipService = friendshipService;
             
+
         }
 
         public async Task<IActionResult> Index()
-        {
-            //var userId = Autorization.CurrentUserId;
-            var user = _userManager.GetUserAsync(User);
-            var userId = user.Id;
+        { 
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             ViewBag.UserId = userId;
             var friends = await _friendshipService.GetFriendsAsync(userId);
 
@@ -37,8 +36,7 @@ namespace PL.Controllers
         {
             //var userId = Autorization.CurrentUserId;
 
-            var user = _userManager.GetUserAsync(User);
-            var userId = user.Id;
+            var userId = Int32.Parse(_userManager.GetUserId(User));
 
             var users = await _friendshipService.SearchUserByName(name);
             var friendships = await _friendshipService.GetFriendshipRequests(userId);
@@ -59,17 +57,20 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> Unfollow(int friendId)
         {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             await _friendshipService.Unfollow(userId, friendId);
             return RedirectToAction("Index");
         }
         [HttpPost]
         public async Task<IActionResult> Follow(int friendId)
         {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             await _friendshipService.Follow(userId, friendId);
             return RedirectToAction("Search");
         }
         public async Task<IActionResult> RequestAndBanned()
         {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             var requests = await _friendshipService.FriendshipRequestList(userId);
             var banned = await _friendshipService.FriendshipBannedList(userId);
             return View(new Tuple<List<User>, List<User>>(requests, banned));
@@ -79,6 +80,7 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> AcceptRequest(int friendId)
         {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             await _friendshipService.AcceptRequest(userId, friendId);
             return RedirectToAction("RequestAndBanned");
         }
@@ -86,6 +88,7 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> BlockUser(int friendId)
         {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             await _friendshipService.Block(userId, friendId);
             return RedirectToAction("RequestAndBanned");
         }
@@ -93,6 +96,7 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> UnblockUser(int friendId)
         {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
             await _friendshipService.UnBlock(userId, friendId);
             return RedirectToAction("RequestAndBanned");
         }

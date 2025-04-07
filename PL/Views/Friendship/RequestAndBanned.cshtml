@@ -1,6 +1,8 @@
 ﻿@model Tuple<List<DAL.Models.User>, List<DAL.Models.User>>
 
 @{
+    ViewData["Title"] = "Запити";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var friendshipRequests = Model.Item1;
     var bannedUsers = Model.Item2;
 }
