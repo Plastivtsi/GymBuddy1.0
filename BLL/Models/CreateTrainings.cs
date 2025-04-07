@@ -30,7 +30,7 @@ namespace BLL.Models
                 Description = description,
                 UserId = userId,
                 Template = true,
-                Exercises = new List<Exercise>()
+                Exercises = new List<Exercise>(),
             };
 
             try

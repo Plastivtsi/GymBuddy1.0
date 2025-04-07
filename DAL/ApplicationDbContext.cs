@@ -67,11 +67,11 @@ namespace DAL.Models
 
             modelBuilder.Entity<Training>()
                 .Property(t => t.Id)
-                .ValueGeneratedOnAdd(); 
+                .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Exercise>()
                 .Property(e => e.Id)
-                .ValueGeneratedOnAdd(); 
+                .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Training>()
                 .Property(t => t.Date)
