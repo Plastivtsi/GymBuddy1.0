@@ -83,7 +83,7 @@ namespace YourProject.Tests
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal(user, viewResult.Model);
         }
-        
+
         [Fact]
         public async Task Edit_Post_Should_Call_GetUserById_With_Correct_Id()
         {
