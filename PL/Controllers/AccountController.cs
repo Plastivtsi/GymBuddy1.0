@@ -79,6 +79,7 @@ namespace PL.Controllers
         {
             var result = await _signInManager.PasswordSignInAsync(loginUsername, loginPassword, isPersistent: false, lockoutOnFailure: false);
             var user = await _userManager.FindByNameAsync(loginUsername);
+
             if (user != null)
             {
                 if (await _userManager.IsInRoleAsync(user, "Blocked"))
@@ -87,14 +88,20 @@ namespace PL.Controllers
                     return View();
                 }
             }
+
             if (result.Succeeded)
             {
                 _logger.LogInformation("User {Username} logged in.", loginUsername);
+
+                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    return RedirectToAction("HomeAdmin", "Home"); // Перенаправлення на Home/HomeAdmin
+                }
+
                 return RedirectToAction("Index", "Home");
             }
             else
             {
-                // Якщо користувач існує, але пароль неправильний
                 if (user != null)
                 {
                     var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, loginPassword);

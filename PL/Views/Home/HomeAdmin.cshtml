@@ -1,0 +1,82 @@
+﻿@model List<PL.Controllers.UserViewModel>
+
+@{
+    ViewBag.Title = "Адмін панель";
+}
+
+<div class="container">
+    <h2>Вітаємо в адмін-панелі, @ViewBag.UserName!</h2>
+
+    <h3>Список користувачів</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ім'я користувача</th>
+                <th>Email</th>
+                <th>Статус</th>
+                <th>Причина блокування</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @(user.IsBlocked ? "Заблокований" : (user.IsAdmin ? "Адміністратор" : "Користувач"))
+                    </td>
+                    <td>@user.BlockedReason</td>
+                    <td>
+                        @if (!user.IsBlocked && !user.IsAdmin)
+                        {
+                            <form asp-action="BlockUser" method="post" class="block-form">
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <input type="text" name="blockedReason" placeholder="Причина блокування" required class="form-control" />
+                                <button type="submit" class="btn btn-danger mt-2">Заблокувати</button>
+                            </form>
+                        }
+                        else if (user.IsBlocked)
+                        {
+                            <form asp-action="UnblockUser" method="post" class="block-form">
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <button type="submit" class="btn btn-success mt-2">Розблокувати</button>
+                            </form>
+                        }
+                        else if (user.IsAdmin)
+                        {
+                            <span>Адміністратор</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">Вийти</a>
+</div>
+
+<style>
+    .admin-options {
+        margin: 20px 0;
+    }
+
+    .btn-danger, .btn-success {
+        margin-top: 20px;
+    }
+
+    .table {
+        margin-top: 20px;
+    }
+
+    .block-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    header, footer {
+        display: none;
+    }
+</style>
