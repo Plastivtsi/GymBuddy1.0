@@ -1,97 +1,101 @@
-﻿//using Moq;
-//using Xunit;
-//using PL.Controllers;
-//using BLL.Models;
-//using DAL.Interfaces;
-//using Microsoft.AspNetCore.Mvc;
-//using System;
-//using DAL.Models;
-//using YourProject.Controllers;
+﻿using Xunit;
+using Moq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using BLL.Service;
+using DAL.Models;
+using YourProject.Controllers;
+using System.Collections.Generic;
 
-//namespace PL.Tests
-//{
-//    public class ProfileControllerTests
-//    {
-//        private readonly Mock<IUserRepository> _userRepositoryMock;
-//        private readonly ProfileController _controller;
+namespace YourProject.Tests
+{
+    public class ProfileControllerTests
+    {
+        private readonly Mock<UserManager<User>> _userManagerMock;
+        private readonly Mock<IUserService> _userServiceMock;
+        private readonly ProfileController _controller;
 
-//        public ProfileControllerTests()
-//        {
-//            _userRepositoryMock = new Mock<IUserRepository>();
-//            _controller = new ProfileController((IUserService)_userRepositoryMock.Object);
-//        }
+        public ProfileControllerTests()
+        {
+            var store = new Mock<IUserStore<User>>();
+            _userManagerMock = new Mock<UserManager<User>>(store.Object, null, null, null, null, null, null, null, null);
+            _userServiceMock = new Mock<IUserService>();
+            _controller = new ProfileController(_userManagerMock.Object, _userServiceMock.Object);
+        }
 
-//        // Тест на успішне редагування профілю
-//        [Fact]
-//        public void EditProfile_Should_Update_User_Profile()
-//        {
-//            // Arrange
-//            var userId = 1;
-//            var updatedUser = new User
-//            {
-//                Id = userId,
-//                Name = "Updated Name",
-//                Email = "updated@email.com",
-//                Weight = 70,
-//                Height = 180
-//            };
+        [Fact]
+        public async Task Edit_Post_Should_Update_User_And_Redirect()
+        {
+            // Arrange
+            var user = new User
+            {
+                Id = 1,
+                UserName = "UpdatedUser",
+                Email = "updated@email.com",
+                Weight = 70,
+                Height = 180
+            };
 
-//            _userRepositoryMock.Setup(repo => repo.Update(It.IsAny<User>())).Verifiable();
+            _userServiceMock.Setup(s => s.GetUserById("1")).ReturnsAsync(user);
+            _userServiceMock.Setup(s => s.UpdateUser(It.IsAny<User>())).Returns(Task.CompletedTask);
 
-//            // Act
-//            var result = _controller.Edit(updatedUser) as RedirectToActionResult;
+            // Act
+            var result = await _controller.Edit(user);
 
-//            // Assert
-//            _userRepositoryMock.Verify(repo => repo.Update(It.Is<User>(u => u.Id == userId && u.Name == "Updated Name")), Times.Once);
-//            Assert.NotNull(result);
-//            Assert.Equal("Profile", result.ActionName); // Assuming it redirects to the Profile action
-//        }
+            // Assert
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirectResult.ActionName);
+            _userServiceMock.Verify(s => s.UpdateUser(It.Is<User>(u =>
+                u.Id == 1 &&
+                u.UserName == "UpdatedUser" &&
+                u.Email == "updated@email.com")), Times.Once);
+        }
 
-//        // Тест на невірного користувача (не знайдено)
-//        [Fact]
-//        public void EditProfile_Should_Return_NotFound_When_User_Not_Found()
-//        {
-//            // Arrange
-//            var userId = 999; // Ідентифікатор користувача, який не існує
-//            var updatedUser = new User
-//            {
-//                Id = userId,
-//                Name = "Non-Existent User",
-//                Email = "nonexistent@email.com",
-//                Weight = 80,
-//                Height = 175
-//            };
+        [Fact]
+        public async Task Edit_Post_Should_Return_NotFound_If_User_NotExists()
+        {
+            // Arrange
+            var user = new User { Id = 999, UserName = "Ghost" };
 
-//            _userRepositoryMock.Setup(repo => repo.Update(It.IsAny<User>())).Throws(new InvalidOperationException("User not found"));
+            _userServiceMock.Setup(s => s.GetUserById("999")).ReturnsAsync((User)null);
 
-//            // Act
-//            var result = _controller.Edit(updatedUser) as NotFoundObjectResult;
+            // Act
+            var result = await _controller.Edit(user);
 
-//            // Assert
-//            Assert.NotNull(result);
-//            Assert.Equal(404, result.StatusCode);
-//            Assert.Equal("User not found", result.Value);
-//        }
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
 
-//        // Тест на перевірку валідації
-//        [Fact]
-//        public void EditProfile_Should_Return_BadRequest_When_Validation_Fails()
-//        {
-//            // Arrange
-//            var invalidUser = new User
-//            {
-//                Id = 0, // Некоректний Id
-//                Name = "", // Пусте ім'я
-//                Email = "invalidemail"
-//            };
+        [Fact]
+        public async Task Edit_Post_Should_Return_View_If_Exception_Occurs()
+        {
+            // Arrange
+            var user = new User { Id = 1, UserName = "User", Email = "test@email.com", Weight = 80, Height = 175 };
 
-//            // Act
-//            var result = _controller.Edit(invalidUser) as BadRequestObjectResult;
+            _userServiceMock.Setup(s => s.GetUserById("1")).ReturnsAsync(user);
+            _userServiceMock.Setup(s => s.UpdateUser(It.IsAny<User>())).ThrowsAsync(new System.Exception("DB error"));
 
-//            // Assert
-//            Assert.NotNull(result);
-//            Assert.Equal(400, result.StatusCode);
-//            Assert.Contains("Invalid data", result.Value.ToString());
-//        }
-//    }
-//}
+            // Act
+            var result = await _controller.Edit(user);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal(user, viewResult.Model);
+        }
+        
+        [Fact]
+        public async Task Edit_Post_Should_Call_GetUserById_With_Correct_Id()
+        {
+            // Arrange
+            var user = new User { Id = 42, UserName = "Tester" };
+            _userServiceMock.Setup(s => s.GetUserById("42")).ReturnsAsync(user);
+
+            // Act
+            var result = await _controller.Edit(user);
+
+            // Assert
+            _userServiceMock.Verify(s => s.GetUserById("42"), Times.Once);
+        }
+    }
+}
