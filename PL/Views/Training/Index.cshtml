@@ -1,22 +1,22 @@
 ﻿@model List<DAL.Models.Training>
 
 @{
-    ViewData["Title"] = "Мої тренування";
+    ViewData["Title"] = "Мої шаблонні тренування";
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center my-4">
-        <h1>Мої тренування</h1>
+        <h1>Мої шаблонні тренування</h1>
         <a href="@Url.Action("Create", "TrainingCreation")" class="btn btn-success">Створити тренування</a>
     </div>
     <div class="navigation-buttons" style="margin: 20px 0;">
         <a href="@Url.Action("Index", "TrainingHistory")" class="btn btn-success">Переглянути історію тренувань</a>
-     </div>
+    </div>
 
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info" role="alert">
-            У вас ще немає тренувань. Створіть своє перше тренування!
+            У вас ще немає шаблонних тренувань. Створіть своє перше тренування!
         </div>
     }
     else
@@ -27,7 +27,7 @@
                 <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title">@training.Name</h5>
+                            <h5 class="card-title">@training.Name <span class="badge bg-info">Шаблон</span></h5>
                             <div class="exercises-list">
                                 @if (training.Exercises != null && training.Exercises.Any())
                                 {

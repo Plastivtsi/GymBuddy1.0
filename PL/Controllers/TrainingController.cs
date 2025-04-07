@@ -3,11 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using BLL.Interfaces;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
-using BLL.Models;
-using DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using BLL.Service;
 
 namespace PL.Controllers
 {
@@ -17,27 +13,24 @@ namespace PL.Controllers
         private readonly ILogger<TrainingController> _logger;
         private readonly UserManager<User> _userManager;
 
-
-        public TrainingController(UserManager<User> userManager,ITrainingService trainingService, ILogger<TrainingController> logger)
+        public TrainingController(UserManager<User> userManager, ITrainingService trainingService, ILogger<TrainingController> logger)
         {
             _userManager = userManager;
             _trainingService = trainingService;
             _logger = logger;
         }
 
+        // Відображає лише шаблонні тренування
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var userId = user.Id;
-            
-
-
             if (user == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var trainings = await _trainingService.GetTrainingsByUserIdAsync(userId);
+            // Отримуємо шаблонні тренування для поточного користувача
+            var trainings = await _trainingService.GetTemplateTrainingsWithExercisesAsync(user.Id);
             return View(trainings);
         }
 
@@ -86,7 +79,6 @@ namespace PL.Controllers
                 return NotFound();
             }
 
-            // Видаляємо помилки валідації для навігаційних властивостей
             ModelState.Remove("User");
             if (training.Exercises != null)
             {
@@ -102,7 +94,6 @@ namespace PL.Controllers
 
                 try
                 {
-                    // Переконуємося, що UserId не змінився
                     var existingTraining = await _trainingService.SearchTrainingsAsync(null, null, null)
                         .ContinueWith(t => t.Result.FirstOrDefault(tr => tr.Id == id));
 
@@ -115,9 +106,6 @@ namespace PL.Controllers
                     _logger.LogInformation("Existing training found: {@ExistingTraining}", existingTraining);
 
                     training.UserId = existingTraining.UserId;
-
-                    // Оновлюємо тренування
-                    _logger.LogInformation("Calling UpdateTrainingAsync for Training ID {TrainingId}", id);
                     await _trainingService.UpdateTrainingAsync(training);
 
                     _logger.LogInformation("Training updated successfully with ID {TrainingId}", training.Id);
@@ -131,7 +119,6 @@ namespace PL.Controllers
             }
             else
             {
-                // Логуємо помилки валідації
                 _logger.LogWarning("ModelState is invalid for Training ID {TrainingId}", id);
                 foreach (var modelState in ModelState)
                 {

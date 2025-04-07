@@ -9,10 +9,10 @@ namespace BLL.Interfaces
     {
         Task<List<Training>> GetTrainingsByUserIdAsync(int userId);
         Task CreateTrainingAsync(Training training);
-        Task UpdateTrainingAsync(Training training); // Додаємо метод для оновлення
+        Task UpdateTrainingAsync(Training training);
         Task<IEnumerable<Training>> SearchTrainingsAsync(string? name, DateTime? date, int? userId);
         Task<List<Training>> GetUserTrainingHistoryAsync(int userId);
-        Task<List<Training>> GetTemplateTrainingsWithExercisesAsync();
+        Task<List<Training>> GetTemplateTrainingsWithExercisesAsync(int? userId = null);
         Task<Training> CreateTrainingFromTemplateAsync(int templateTrainingId, int userId, List<Exercise> updatedExercises);
     }
 }
