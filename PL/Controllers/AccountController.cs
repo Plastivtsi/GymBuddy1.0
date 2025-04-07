@@ -33,17 +33,37 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(string nickname, string email, string password)
         {
+            // Перевіряємо, чи існує користувач із таким UserName
+            var existingUser = await _userManager.FindByNameAsync(nickname);
+            if (existingUser != null)
+            {
+                _logger.LogWarning("Спроба реєстрації з уже існуючим ім'ям користувача: {Nickname}", nickname);
+                ViewBag.Error = "Користувач із таким ім'ям уже існує.";
+                ModelState.AddModelError(string.Empty, "Користувач із таким ім'ям уже існує.");
+                return View();
+            }
             var user = new User { UserName = nickname, Email = email };
 
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
-                _logger.LogInformation("User {Nickname} created a new account.", nickname);
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                // Додаємо користувача до ролі "User"
+                var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                if (!roleResult.Succeeded)
+                {
+                    foreach (var error in roleResult.Errors)
+                    {
+                        _logger.LogError("Помилка додавання ролі 'User' для {Nickname}: {Description}", nickname, error.Description);
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return View();
+                }
+                _logger.LogInformation("User {Nickname} created a new account with role 'User'.", nickname); await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
             foreach (var error in result.Errors)
             {
+                _logger.LogError("Помилка при створенні користувача {Nickname}: {Description}", nickname, error.Description);
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return View();
@@ -74,7 +94,22 @@ namespace PL.Controllers
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                // Якщо користувач існує, але пароль неправильний
+                if (user != null)
+                {
+                    var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, loginPassword);
+                    if (!isPasswordCorrect)
+                    {
+                        ModelState.AddModelError(string.Empty, "Неправильний пароль.");
+                        ViewBag.Error = $"Неправильний пароль";
+                        _logger.LogWarning("Неправильний пароль для користувача {Username}.", loginUsername);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Користувача з таким ім'ям не знайдено.");
+                    _logger.LogWarning("Спроба входу для неіснуючого користувача {Username}.", loginUsername);
+                }
                 return View();
             }
         }

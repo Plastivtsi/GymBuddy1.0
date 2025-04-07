@@ -4,6 +4,7 @@ using BLL.Models;
 using BLL.Service;
 using DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Serilog;
 
 namespace YourProject.Controllers
 {
@@ -21,9 +22,7 @@ namespace YourProject.Controllers
         // GET: /Profile/
         public async Task<IActionResult> Index()
         {
-            var user1 = await _userManager.GetUserAsync(User);
-            var userId = user1.Id;
-            var user = await _userService.GetUserById(userId.ToString());
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return RedirectToAction("Login", "Account");
@@ -35,10 +34,7 @@ namespace YourProject.Controllers
         // GET: /Profile/Edit/
         public async Task<IActionResult> Edit()
         {
-            var user1 = await _userManager.GetUserAsync(User);
-            var userId = user1.Id;
-            var user = await _userService.GetUserById(userId.ToString());
-
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return RedirectToAction("Login", "Account");
@@ -51,13 +47,37 @@ namespace YourProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(User model)
         {
-            if (ModelState.IsValid)
-            {
-                _userService.UpdateUser(model);
-                return RedirectToAction("Index");
-            }
+            Log.Information("Received update for user ID: {UserId}", model.Id);
 
-            return View(model);
+            Log.Information("Model values: Id={Id}, Name={Name}, Email={Email}, Weight={Weight}, Height={Height}",
+                model.Id, model.UserName, model.Email, model.Weight, model.Height);
+
+            try
+            {
+                var existingUser = await _userService.GetUserById(model.Id.ToString());
+                if (existingUser == null)
+                {
+                    Log.Warning("User with ID {UserId} not found.", model.Id);
+                    return NotFound();
+                }
+
+                existingUser.UserName = model.UserName;
+                existingUser.Email = model.Email;
+                existingUser.Weight = model.Weight;
+                existingUser.Height = model.Height;
+
+                await _userService.UpdateUser(existingUser);
+
+                Log.Information("Updating user profile for user ID: {UserId}", model.Id);
+                Log.Information("User profile updated successfully for user ID: {UserId}", model.Id);
+                return RedirectToAction("Index", "Profile");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while updating user profile for user ID: {UserId}", model.Id);
+                return View(model);
+            }
         }
+    
     }
 }
