@@ -1,11 +1,11 @@
-﻿using BLL.Interfaces;
+﻿using DAL.Models;
 using DAL;
-using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BLL.Interfaces;
 
 namespace BLL
 {
@@ -21,14 +21,13 @@ namespace BLL
         public async Task<List<Training>> GetTemplateTrainingsWithExercisesAsync()
         {
             return await _context.Trainings
-                .Where(t => t.Template == true) // Фільтруємо тренування, де Template = true
-                .Include(t => t.Exercises)     // Включаємо пов'язані вправи
+                .Where(t => t.Template == true)
+                .Include(t => t.Exercises)
                 .ToListAsync();
         }
 
         public async Task<Training> CreateTrainingFromTemplateAsync(int templateTrainingId, int userId, List<Exercise> updatedExercises)
         {
-            // Отримуємо шаблон тренування
             var templateTraining = await _context.Trainings
                 .Include(t => t.Exercises)
                 .FirstOrDefaultAsync(t => t.Id == templateTrainingId && t.Template == true);
@@ -38,19 +37,17 @@ namespace BLL
                 throw new Exception("Шаблон тренування не знайдено.");
             }
 
-            // Створюємо нове тренування на основі шаблону
             var newTraining = new Training
             {
                 Name = templateTraining.Name,
-                Date = DateTime.Now, // Поточна дата
+                Date = DateTime.Now,
                 Time = templateTraining.Time,
                 Description = templateTraining.Description,
                 UserId = userId,
-                Template = false, // Нове тренування не є шаблоном
+                Template = false,
                 Exercises = new List<Exercise>()
             };
 
-            // Додаємо вправи з оновленими даними (вага, повторення, нотатки)
             foreach (var updatedExercise in updatedExercises)
             {
                 var templateExercise = templateTraining.Exercises.FirstOrDefault(e => e.Id == updatedExercise.Id);
@@ -62,16 +59,50 @@ namespace BLL
                         Weight = updatedExercise.Weight,
                         Repetitions = updatedExercise.Repetitions,
                         Notes = updatedExercise.Notes,
-                        Template = false // Вправи в новому тренуванні не є шаблонами
+                        Template = false
                     });
                 }
             }
 
-            // Додаємо нове тренування до бази
             _context.Trainings.Add(newTraining);
             await _context.SaveChangesAsync();
 
             return newTraining;
+        }
+
+        // Реалізація методів ITrainingRepository для сумісності
+        public async Task<List<Training>> GetTrainingsByUserId(int userId)
+        {
+            return await _context.Trainings
+                .Where(t => t.UserId == userId)
+                .Include(t => t.Exercises)
+                .ToListAsync();
+        }
+
+        public async Task CreateTrainingAsync(Training training)
+        {
+            _context.Trainings.Add(training);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateTrainingAsync(Training training)
+        {
+            _context.Trainings.Update(training);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Training>> SearchTrainingsAsync(string? name, DateTime? date, int? userId)
+        {
+            var query = _context.Trainings.AsQueryable();
+
+            if (!string.IsNullOrEmpty(name))
+                query = query.Where(t => t.Name.Contains(name));
+            if (date.HasValue)
+                query = query.Where(t => t.Date == date.Value.Date);
+            if (userId.HasValue)
+                query = query.Where(t => t.UserId == userId.Value);
+
+            return await query.Include(t => t.Exercises).ToListAsync();
         }
     }
 }

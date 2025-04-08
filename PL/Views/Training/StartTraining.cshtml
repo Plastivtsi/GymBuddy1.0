@@ -1,0 +1,68 @@
+﻿@model DAL.Models.Training
+
+@{
+    ViewData["Title"] = "Розпочати тренування";
+}
+
+<div class="container">
+    <h1>Розпочати тренування: @Model.Name</h1>
+
+    <form asp-action="Complete" asp-controller="StartTraining" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="card">
+            <div class="card-body">
+                <div class="exercises-list">
+                    @for (int i = 0; i < Model.Exercises.Count; i++)
+                    {
+                        <div class="mb-3 exercise-item">
+                            <h5>@Model.Exercises[i].Name</h5>
+                            <input type="hidden" asp-for="Exercises[i].Id" />
+                            <input type="hidden" asp-for="Exercises[i].Name" />
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Вага (кг)</label>
+                                    <input asp-for="Exercises[i].Weight" class="form-control" type="number" step="0.5" min="0" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Повторення</label>
+                                    <input asp-for="Exercises[i].Repetitions" class="form-control" type="number" min="0" />
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <label class="form-label">Нотатки</label>
+                                <textarea asp-for="Exercises[i].Notes" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-success">Завершити тренування</button>
+                <a asp-action="Index" asp-controller="Training" class="btn btn-secondary">Скасувати</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .exercise-item {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+
+    .exercises-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .form-control {
+        max-width: 200px;
+    }
+
+    header, footer {
+        display: none;
+    }
+</style>

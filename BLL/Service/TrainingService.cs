@@ -55,9 +55,10 @@ namespace BLL.Service
                 .ToList();
         }
 
-        public async Task<List<Training>> GetTemplateTrainingsWithExercisesAsync()
+        // Оновлений метод для отримання шаблонних тренувань із фільтром за користувачем
+        public async Task<List<Training>> GetTemplateTrainingsWithExercisesAsync(int? userId = null)
         {
-            var trainings = await _trainingRepository.SearchTrainingsAsync(null, null, null);
+            var trainings = await _trainingRepository.SearchTrainingsAsync(null, null, userId);
             return trainings
                 .Where(t => t.Template)
                 .ToList();
