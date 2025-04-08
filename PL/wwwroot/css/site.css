@@ -122,6 +122,10 @@ p {
     padding-left: 15px;
     padding-right: 15px;
 }
+/*Приховуємо навбар і футер на сторінках входу та реєстрації*/
+ footer {
+    display: none;
+}
 
 
 /*
@@ -129,7 +133,6 @@ p {
 header, footer {
     display: none;
 }*/
-
 /* Додатковий контейнер для центрованого вмісту */
 .container-center {
     display: flex;
