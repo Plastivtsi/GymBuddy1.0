@@ -2,14 +2,16 @@
 
   @{
       ViewData["Title"] = "Редагування профілю";
+      Layout = "~/Views/Shared/_Layout.cshtml";
+
   }
 
-  @if (TempData["SuccessMessage"] != null)
+   @if (TempData["SuccessMessage"] != null)
   {
       <div class="alert alert-success">
           @TempData["SuccessMessage"]
       </div>
-  }
+  } 
 
   <h2>Редагування профілю</h2>
 
@@ -41,9 +43,3 @@
   </form>
 
 
-
-  <style>
-      header, footer {
-          display: none;
-      }
-  </style>

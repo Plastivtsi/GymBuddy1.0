@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.AspNetCore.Identity;
 
 
 //userId1 - той хто надіслав 
@@ -18,9 +19,11 @@ namespace BLL.Models
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<FriendshipService> _logger;
+        private readonly UserManager<User> _userManager;
 
-        public FriendshipService(ApplicationDbContext context, ILogger<FriendshipService> logger)
+        public FriendshipService(UserManager<User> userManager,ApplicationDbContext context, ILogger<FriendshipService> logger)
         {
+            _userManager = userManager;
             _context = context;
             _logger = logger;
         }
@@ -33,12 +36,22 @@ namespace BLL.Models
         {
             try
             {
-                var friends = _context.Friendships
+                var friends =  _context.Friendships
                     .Where(f => (f.User1Id == userId || f.User2Id == userId) && f.Request == 0)
                     .Select(f => f.User1Id == userId ? f.User2 : f.User1)
                     .ToList();
 
-                return friends.Any() ? friends : new List<DAL.Models.User>();
+                var nonBlockedFriends = new List<DAL.Models.User>();
+                foreach (var friend in friends)
+                {
+                    var isBlocked = await _userManager.IsInRoleAsync(friend, "Blocked");
+                    if (!isBlocked)
+                    {
+                        nonBlockedFriends.Add(friend);
+                    }
+                }
+
+                return nonBlockedFriends.Any() ? nonBlockedFriends : new List<DAL.Models.User>();
             }
             catch (Exception ex)
             {
@@ -52,9 +65,20 @@ namespace BLL.Models
             if (string.IsNullOrEmpty(name))
                 return new List<User>();
 
-            return await _context.Users
+            var friends =  await _context.Users
                 .Where(u => u.UserName.Contains(name))
                 .ToListAsync();
+            var nonBlockedFriends = new List<DAL.Models.User>();
+            foreach (var friend in friends)
+            {
+                var isBlocked = await _userManager.IsInRoleAsync(friend, "Blocked");
+                if (!isBlocked)
+                {
+                    nonBlockedFriends.Add(friend);
+                }
+            }
+
+            return nonBlockedFriends.Any() ? nonBlockedFriends : new List<DAL.Models.User>();
         }
 
         public async Task Unfollow(int userId1, int userId2)
