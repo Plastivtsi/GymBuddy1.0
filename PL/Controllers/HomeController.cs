@@ -60,6 +60,46 @@ namespace PL.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        public IActionResult RegisterAdmin()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> RegisterAdmin(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new User
+                {
+                    UserName = model.UserName,
+                    Email = model.Email
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    if (!await _roleManager.RoleExistsAsync("Admin"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole<int> { Name = "Admin" });
+                    }
+
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                    _logger.LogInformation("Новий адміністратор {UserName} успішно зареєстрований", user.UserName);
+                    return RedirectToAction("HomeAdmin");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            return View(model);
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> BlockUser(string userId, string blockedReason)
         {
@@ -106,13 +146,11 @@ namespace PL.Controllers
                 return RedirectToAction("HomeAdmin");
             }
 
-            // Видаляємо роль "Blocked"
             if (await _userManager.IsInRoleAsync(user, "Blocked"))
             {
                 await _userManager.RemoveFromRoleAsync(user, "Blocked");
             }
 
-            // Очищаємо причину блокування
             user.BlockedReason = null;
             var result = await _userManager.UpdateAsync(user);
 
@@ -165,5 +203,13 @@ namespace PL.Controllers
         public string BlockedReason { get; set; }
         public bool IsBlocked { get; set; }
         public bool IsAdmin { get; set; }
+    }
+
+    public class RegisterViewModel
+    {
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
     }
 }
