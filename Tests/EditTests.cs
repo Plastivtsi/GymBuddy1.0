@@ -15,13 +15,14 @@ namespace YourProject.Tests
         private readonly Mock<UserManager<User>> _userManagerMock;
         private readonly Mock<IUserService> _userServiceMock;
         private readonly ProfileController _controller;
+        private readonly ApplicationDbContext _context;
 
         public ProfileControllerTests()
         {
             var store = new Mock<IUserStore<User>>();
             _userManagerMock = new Mock<UserManager<User>>(store.Object, null, null, null, null, null, null, null, null);
             _userServiceMock = new Mock<IUserService>();
-            _controller = new ProfileController(_userManagerMock.Object, _userServiceMock.Object);
+            _controller = new ProfileController(_userManagerMock.Object, _userServiceMock.Object, _context);
         }
 
         [Fact]

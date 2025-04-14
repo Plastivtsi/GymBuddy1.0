@@ -1,35 +1,67 @@
-﻿  @model DAL.Models.User
+﻿@model DAL.Models.User
 
-  @{
-      ViewData["Title"] = "Profile";
+@{
+    ViewData["Title"] = "Profile";
     Layout = "~/Views/Shared/_Layout.cshtml";
-  }
+    var exerciseRecords = ViewData["ExerciseRecords"] as List<object>;
+}
 
-  <div class="container mt-5">
-      <h2 class="text-center">Ваш профіль</h2>
-      <div class="card mt-4">
-          <div class="card-body">
-              <h5 class="card-title">Інформація</h5>
-              <hr />
-              <dl class="row">
-                  <dt class="col-sm-3">Ім'я:</dt>
+<div class="container mt-5">
+    <h2 class="text-center">Ваш профіль</h2>
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Інформація</h5>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3">Ім'я:</dt>
                 <dd class="col-sm-9">@Model.UserName</dd>
 
-                  <dt class="col-sm-3">Email:</dt>
-                  <dd class="col-sm-9">@Model.Email</dd>
+                <dt class="col-sm-3">Email:</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
 
-                  <dt class="col-sm-3">Вага:</dt>
-                  <dd class="col-sm-9">@Model.Weight</dd>
+                <dt class="col-sm-3">Вага:</dt>
+                <dd class="col-sm-9">@Model.Weight</dd>
 
-                  <dt class="col-sm-3">Зріст:</dt>
-                  <dd class="col-sm-9">@Model.Height</dd>
-              </dl>
-              <div class="text-center mt-4">
-                  <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
-              </div>
-          </div>
-      </div>
-  </div>
+                <dt class="col-sm-3">Зріст:</dt>
+                <dd class="col-sm-9">@Model.Height</dd>
+            </dl>
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
+            </div>
+        </div>
+    </div>
 
- 
- 
+    <!-- Секція для рекордів вправ -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Рекорди вправ</h5>
+            <hr />
+            @if (exerciseRecords != null && exerciseRecords.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Вправа</th>
+                            <th>Максимальна вага</th>
+                            <th>Максимальна кількість повторень</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in exerciseRecords)
+                        {
+                            <tr>
+                                <td>@((record as dynamic).ExerciseName)</td>
+                                <td>@((record as dynamic).MaxWeight) кг</td>
+                                <td>@((record as dynamic).MaxReps)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-center">Рекорди відсутні.</p>
+            }
+        </div>
+    </div>
+</div>
