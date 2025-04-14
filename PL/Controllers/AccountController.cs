@@ -8,6 +8,9 @@ using BLL.Models.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using PL.Models;
+using System.Web;
+
 
 namespace PL.Controllers
 {
@@ -16,13 +19,15 @@ namespace PL.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly IEmailService _emailService;
 
-        
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger)
+
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public ActionResult Register()
@@ -138,6 +143,140 @@ namespace PL.Controllers
                 return Ok($"Role '{role}' assigned to user {user.UserName}");
             }
             return BadRequest("User not found or already in role");
+        }
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                // дописати коли буде підтвердження емейлу 
+
+                if (user == null )
+                {
+                    // Не повідомляємо, чи існує користувач, для безпеки
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                _logger.LogInformation("Згенеровано токен для користувача {UserId}: {Token}", user.Id, token);
+
+                var encodedToken = HttpUtility.UrlEncode(token);
+                _logger.LogInformation("Закодований токен: {EncodedToken}", encodedToken);
+
+               // var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { userId = user.Id, token = HttpUtility.UrlEncode(token) },
+                    protocol: Request.Scheme);
+
+                var encodedCallbackUrl = HttpUtility.HtmlEncode(callbackUrl); // Екрануємо URL
+                var message = $@"<p>Будь ласка, скиньте ваш пароль, перейшовши за посиланням:</p>
+                               <p><a href='{encodedCallbackUrl}'>Скинути пароль</a></p>";
+
+                await _emailService.SendEmailAsync(
+                    model.Email,
+                    "Скидання паролю",
+                    message);
+
+                _logger.LogInformation("Надіслано email для скидання паролю для {Email}", model.Email);
+                return RedirectToAction("ForgotPasswordConfirmation");
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string userId, string token)
+        {
+            if (userId == null || token == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var model = new ResetPasswordViewModel {
+                Token = HttpUtility.UrlDecode(token),
+                UserId = userId
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.UserId); // Пошук за UserIdif (user == null)
+            if (user == null)
+            {
+                // Не повідомляємо, чи існує користувач
+                return RedirectToAction("ResetPasswordConfirmation");
+            }
+            _logger.LogInformation("Спроба скидання паролю для користувача {UserId}. Токен: {Token}", model.UserId, model.Token);
+
+            var decodedToken = HttpUtility.UrlDecode(model.Token);
+            _logger.LogInformation("Декодований токен: {DecodedToken}", decodedToken);
+
+            // Перевірка валідності токена
+            var isValidToken = await _userManager.VerifyUserTokenAsync(
+                user,
+                _userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                decodedToken);
+            _logger.LogInformation("Токен валідний: {IsValid}", isValidToken);
+
+            if (!isValidToken)
+            {
+                ModelState.AddModelError(string.Empty, "Невалідний токен скидання паролю.");
+                _logger.LogError("Токен не пройшов перевірку для користувача {UserId}", model.UserId);
+                return View(model);
+            }
+
+            // Явно змінюємо пароль
+            var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+            if (!removePasswordResult.Succeeded)
+            {
+                foreach (var error in removePasswordResult.Errors)
+                {
+                    _logger.LogError("Помилка видалення старого паролю для користувача {UserId}: Код: {Code}, Опис: {Description}", model.UserId, error.Code, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+
+            var addPasswordResult = await _userManager.AddPasswordAsync(user, model.Password);
+            if (addPasswordResult.Succeeded)
+            {
+                _logger.LogInformation("Пароль успішно скинуто для користувача з ID {UserId}", model.UserId);
+                return RedirectToAction("ResetPasswordConfirmation");
+            }
+
+            foreach (var error in addPasswordResult.Errors)
+            {
+                _logger.LogError("Помилка встановлення нового паролю для користувача {UserId}: Код: {Code}, Опис: {Description}", model.UserId, error.Code, error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
         }
 
     }
