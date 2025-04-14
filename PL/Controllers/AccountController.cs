@@ -40,6 +40,7 @@ namespace PL.Controllers
         {
             // Перевіряємо, чи існує користувач із таким UserName
             var existingUser = await _userManager.FindByNameAsync(nickname);
+            var existingUserByEmail = await _userManager.FindByEmailAsync(email);
             if (existingUser != null)
             {
                 _logger.LogWarning("Спроба реєстрації з уже існуючим ім'ям користувача: {Nickname}", nickname);
@@ -47,11 +48,39 @@ namespace PL.Controllers
                 ModelState.AddModelError(string.Empty, "Користувач із таким ім'ям уже існує.");
                 return View();
             }
-            var user = new User { UserName = nickname, Email = email };
+            if (existingUserByEmail != null)
+            {
+                _logger.LogWarning("Спроба реєстрації з уже існуючим email: {Email}", email);
+                ModelState.AddModelError(string.Empty, "Користувач із таким email уже існує.");
+                return View();
+            }
+            var user = new User
+            {
+                UserName = nickname,
+                Email = email,
+                EmailConfirmed = false // Встановлюємо, що email не підтверджений};
+            };
 
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = Url.Action(
+                    "ConfirmEmail",
+                    "Account",
+                    new { userId = user.Id, token = HttpUtility.UrlEncode(token) },
+                    protocol: Request.Scheme);
+
+                var encodedCallbackUrl = HttpUtility.HtmlEncode(callbackUrl);
+                var message = $@"<p>Будь ласка, підтвердьте ваш email, перейшовши за посиланням:</p>
+                               <p><a href='{encodedCallbackUrl}'>Підтвердити email</a></p>";
+
+                await _emailService.SendEmailAsync(
+                    email,
+                    "Підтвердження email",
+                    message);
+
+                _logger.LogInformation("Надіслано email для підтвердження для {Email}", email);
                 // Додаємо користувача до ролі "User"
                 var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 if (!roleResult.Succeeded)
@@ -64,7 +93,7 @@ namespace PL.Controllers
                     return View();
                 }
                 _logger.LogInformation("User {Nickname} created a new account with role 'User'.", nickname); await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("RegisterConfirmation");
             }
             foreach (var error in result.Errors)
             {
@@ -72,6 +101,37 @@ namespace PL.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return View();
+        }
+        [HttpGet]
+        public IActionResult RegisterConfirmation()
+        {
+            return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (userId == null || token == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("Користувача з ID {UserId} не знайдено для підтвердження email", userId);
+                return View("Error", new { message = "Користувача не знайдено" });
+            }
+
+            var decodedToken = HttpUtility.UrlDecode(token);
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Email підтверджено для користувача {UserId}", userId);
+                return View("ConfirmEmail");
+            }
+
+            _logger.LogError("Помилка підтвердження email для користувача {UserId}", userId);
+            return View("Error", new { message = "Помилка підтвердження email" });
         }
 
         public ActionResult Login()
@@ -82,8 +142,14 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string loginUsername, string loginPassword)
         {
-            var result = await _signInManager.PasswordSignInAsync(loginUsername, loginPassword, isPersistent: false, lockoutOnFailure: false);
             var user = await _userManager.FindByNameAsync(loginUsername);
+            // Перевіряємо, чи підтверджений email
+            if (!user.EmailConfirmed)
+            {
+                _logger.LogWarning("Спроба входу для користувача {Username} з непідтвердженим email.", loginUsername);
+                ModelState.AddModelError(string.Empty, "Будь ласка, підтвердіть ваш email перед входом.");
+                return View();
+            }
 
             if (user != null)
             {
@@ -93,7 +159,7 @@ namespace PL.Controllers
                     return View();
                 }
             }
-
+            var result = await _signInManager.PasswordSignInAsync(loginUsername, loginPassword, isPersistent: false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
                 _logger.LogInformation("User {Username} logged in.", loginUsername);
