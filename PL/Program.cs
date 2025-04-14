@@ -16,6 +16,7 @@ namespace PL
     using DAL.Repositorie;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.DataProtection;
 
     public class Program
     {
@@ -31,6 +32,10 @@ namespace PL
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors());
+            builder.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")))
+            .SetApplicationName("GymBuddy");
+
             builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
             {
                 options.User.AllowedUserNameCharacters = null; // Дозволяє будь-які символи
@@ -41,9 +46,15 @@ namespace PL
                 options.Password.RequireLowercase = false; // Вимикаємо вимогу малих букв
                 options.Password.RequireUppercase = false; // Вимикаємо вимогу великих букв
                 options.Password.RequireNonAlphanumeric = false; // Вимикаємо вимогу спеціальних символів
-                options.Password.RequiredUniqueChars = 1; // Вимикаємо вимогу унікальних символів (можна залишити 1)
-            }).AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                options.Password.RequiredUniqueChars = 1; // Вимикаємо вимогу унікальних символів
+                // Налаштування часу дії токена
+                options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
+                options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultProvider;
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultProvider;
+
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
             builder.Services.AddScoped<DbContext, ApplicationDbContext>();
 
@@ -65,16 +76,21 @@ namespace PL
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddAuthorization();
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromDays(1);
+            });
 
             // Реєстрація репозиторіїв та сервісів
-           
+
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITrainingRepository, TrainingRepository>();
             builder.Services.AddScoped<ITrainingService, TrainingService>();
             builder.Services.AddScoped<ITrainingHistoryService, TrainingHistoryService>();
             builder.Services.AddScoped<ITrainingHistoryRepository, TrainingHistoryRepository>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
-           // builder.Services.AddScoped<ICreateUser, Autorization>();
+            // builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();
 
