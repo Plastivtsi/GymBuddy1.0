@@ -8,6 +8,9 @@ using BLL.Models.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using PL.Models;
+using System.Web;
+
 
 namespace PL.Controllers
 {
@@ -16,13 +19,15 @@ namespace PL.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly IEmailService _emailService;
 
-        
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger)
+
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public ActionResult Register()
@@ -35,6 +40,7 @@ namespace PL.Controllers
         {
             // Перевіряємо, чи існує користувач із таким UserName
             var existingUser = await _userManager.FindByNameAsync(nickname);
+            var existingUserByEmail = await _userManager.FindByEmailAsync(email);
             if (existingUser != null)
             {
                 _logger.LogWarning("Спроба реєстрації з уже існуючим ім'ям користувача: {Nickname}", nickname);
@@ -42,11 +48,39 @@ namespace PL.Controllers
                 ModelState.AddModelError(string.Empty, "Користувач із таким ім'ям уже існує.");
                 return View();
             }
-            var user = new User { UserName = nickname, Email = email };
+            if (existingUserByEmail != null)
+            {
+                _logger.LogWarning("Спроба реєстрації з уже існуючим email: {Email}", email);
+                ModelState.AddModelError(string.Empty, "Користувач із таким email уже існує.");
+                return View();
+            }
+            var user = new User
+            {
+                UserName = nickname,
+                Email = email,
+                EmailConfirmed = false // Встановлюємо, що email не підтверджений};
+            };
 
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = Url.Action(
+                    "ConfirmEmail",
+                    "Account",
+                    new { userId = user.Id, token = HttpUtility.UrlEncode(token) },
+                    protocol: Request.Scheme);
+
+                var encodedCallbackUrl = HttpUtility.HtmlEncode(callbackUrl);
+                var message = $@"<p>Будь ласка, підтвердьте ваш email, перейшовши за посиланням:</p>
+                               <p><a href='{encodedCallbackUrl}'>Підтвердити email</a></p>";
+
+                await _emailService.SendEmailAsync(
+                    email,
+                    "Підтвердження email",
+                    message);
+
+                _logger.LogInformation("Надіслано email для підтвердження для {Email}", email);
                 // Додаємо користувача до ролі "User"
                 var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 if (!roleResult.Succeeded)
@@ -59,7 +93,7 @@ namespace PL.Controllers
                     return View();
                 }
                 _logger.LogInformation("User {Nickname} created a new account with role 'User'.", nickname); await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("RegisterConfirmation");
             }
             foreach (var error in result.Errors)
             {
@@ -67,6 +101,37 @@ namespace PL.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return View();
+        }
+        [HttpGet]
+        public IActionResult RegisterConfirmation()
+        {
+            return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (userId == null || token == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("Користувача з ID {UserId} не знайдено для підтвердження email", userId);
+                return View("Error", new { message = "Користувача не знайдено" });
+            }
+
+            var decodedToken = HttpUtility.UrlDecode(token);
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Email підтверджено для користувача {UserId}", userId);
+                return View("ConfirmEmail");
+            }
+
+            _logger.LogError("Помилка підтвердження email для користувача {UserId}", userId);
+            return View("Error", new { message = "Помилка підтвердження email" });
         }
 
         public ActionResult Login()
@@ -77,8 +142,14 @@ namespace PL.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string loginUsername, string loginPassword)
         {
-            var result = await _signInManager.PasswordSignInAsync(loginUsername, loginPassword, isPersistent: false, lockoutOnFailure: false);
             var user = await _userManager.FindByNameAsync(loginUsername);
+            // Перевіряємо, чи підтверджений email
+            if (!user.EmailConfirmed)
+            {
+                _logger.LogWarning("Спроба входу для користувача {Username} з непідтвердженим email.", loginUsername);
+                ModelState.AddModelError(string.Empty, "Будь ласка, підтвердіть ваш email перед входом.");
+                return View();
+            }
 
             if (user != null)
             {
@@ -88,7 +159,7 @@ namespace PL.Controllers
                     return View();
                 }
             }
-
+            var result = await _signInManager.PasswordSignInAsync(loginUsername, loginPassword, isPersistent: false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
                 _logger.LogInformation("User {Username} logged in.", loginUsername);
@@ -138,6 +209,140 @@ namespace PL.Controllers
                 return Ok($"Role '{role}' assigned to user {user.UserName}");
             }
             return BadRequest("User not found or already in role");
+        }
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                // дописати коли буде підтвердження емейлу 
+
+                if (user == null )
+                {
+                    // Не повідомляємо, чи існує користувач, для безпеки
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                _logger.LogInformation("Згенеровано токен для користувача {UserId}: {Token}", user.Id, token);
+
+                var encodedToken = HttpUtility.UrlEncode(token);
+                _logger.LogInformation("Закодований токен: {EncodedToken}", encodedToken);
+
+               // var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { userId = user.Id, token = HttpUtility.UrlEncode(token) },
+                    protocol: Request.Scheme);
+
+                var encodedCallbackUrl = HttpUtility.HtmlEncode(callbackUrl); // Екрануємо URL
+                var message = $@"<p>Будь ласка, скиньте ваш пароль, перейшовши за посиланням:</p>
+                               <p><a href='{encodedCallbackUrl}'>Скинути пароль</a></p>";
+
+                await _emailService.SendEmailAsync(
+                    model.Email,
+                    "Скидання паролю",
+                    message);
+
+                _logger.LogInformation("Надіслано email для скидання паролю для {Email}", model.Email);
+                return RedirectToAction("ForgotPasswordConfirmation");
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string userId, string token)
+        {
+            if (userId == null || token == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var model = new ResetPasswordViewModel {
+                Token = HttpUtility.UrlDecode(token),
+                UserId = userId
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.UserId); // Пошук за UserIdif (user == null)
+            if (user == null)
+            {
+                // Не повідомляємо, чи існує користувач
+                return RedirectToAction("ResetPasswordConfirmation");
+            }
+            _logger.LogInformation("Спроба скидання паролю для користувача {UserId}. Токен: {Token}", model.UserId, model.Token);
+
+            var decodedToken = HttpUtility.UrlDecode(model.Token);
+            _logger.LogInformation("Декодований токен: {DecodedToken}", decodedToken);
+
+            // Перевірка валідності токена
+            var isValidToken = await _userManager.VerifyUserTokenAsync(
+                user,
+                _userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                decodedToken);
+            _logger.LogInformation("Токен валідний: {IsValid}", isValidToken);
+
+            if (!isValidToken)
+            {
+                ModelState.AddModelError(string.Empty, "Невалідний токен скидання паролю.");
+                _logger.LogError("Токен не пройшов перевірку для користувача {UserId}", model.UserId);
+                return View(model);
+            }
+
+            // Явно змінюємо пароль
+            var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+            if (!removePasswordResult.Succeeded)
+            {
+                foreach (var error in removePasswordResult.Errors)
+                {
+                    _logger.LogError("Помилка видалення старого паролю для користувача {UserId}: Код: {Code}, Опис: {Description}", model.UserId, error.Code, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+
+            var addPasswordResult = await _userManager.AddPasswordAsync(user, model.Password);
+            if (addPasswordResult.Succeeded)
+            {
+                _logger.LogInformation("Пароль успішно скинуто для користувача з ID {UserId}", model.UserId);
+                return RedirectToAction("ResetPasswordConfirmation");
+            }
+
+            foreach (var error in addPasswordResult.Errors)
+            {
+                _logger.LogError("Помилка встановлення нового паролю для користувача {UserId}: Код: {Code}, Опис: {Description}", model.UserId, error.Code, error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
         }
 
     }

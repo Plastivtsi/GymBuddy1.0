@@ -5,6 +5,10 @@ using BLL.Service;
 using DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace YourProject.Controllers
 {
@@ -12,11 +16,13 @@ namespace YourProject.Controllers
     {
         private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public ProfileController(UserManager<User> userManager,IUserService userService)
+        public ProfileController(UserManager<User> userManager, IUserService userService, ApplicationDbContext context)
         {
             _userManager = userManager;
             _userService = userService;
+            _context = context;
         }
 
         // GET: /Profile/
@@ -28,7 +34,27 @@ namespace YourProject.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            var exerciseRecords = await GetExerciseRecords(user.Id.ToString());
+            ViewData["ExerciseRecords"] = exerciseRecords;
+
             return View(user);
+        }
+
+        private async Task<List<object>> GetExerciseRecords(string userId)
+        {
+            var records = await _context.Trainings
+                .Where(w => w.UserId.ToString() == userId && w.Template == false)
+                .SelectMany(w => w.Exercises)
+                .GroupBy(e => e.Name)
+                .Select(g => new
+                {
+                    ExerciseName = g.Key,
+                    MaxWeight = g.Max(e => e.Weight),
+                    MaxReps = g.Max(e => e.Repetitions) // Змінено з Reps на Repetitions
+                })
+                .ToListAsync();
+
+            return records.Cast<object>().ToList();
         }
 
         // GET: /Profile/Edit/
@@ -78,6 +104,5 @@ namespace YourProject.Controllers
                 return View(model);
             }
         }
-    
     }
 }
