@@ -73,8 +73,10 @@ namespace PL
             builder.Services.AddScoped<ITrainingService, TrainingService>();
             builder.Services.AddScoped<ITrainingHistoryService, TrainingHistoryService>();
             builder.Services.AddScoped<ITrainingHistoryRepository, TrainingHistoryRepository>();
+            builder.Services.AddScoped<ITrainingCalendar, TrainingCalendar>();
 
-           // builder.Services.AddScoped<ICreateUser, Autorization>();
+
+            // builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();
 

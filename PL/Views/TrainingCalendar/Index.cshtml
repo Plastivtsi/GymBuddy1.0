@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Календар";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Календар тренувань</h2>
+
+<form asp-action="GetTrainingsByDateRange" method="post">
+    <div class="form-group">
+        <label for="startDate">Початкова дата:</label>
+        <input type="date" id="startDate" name="startDate" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label for="endDate">Кінцева дата:</label>
+        <input type="date" id="endDate" name="endDate" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Показати тренування</button>
+</form>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}

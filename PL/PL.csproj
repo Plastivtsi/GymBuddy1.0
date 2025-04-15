@@ -28,6 +28,8 @@
   <ItemGroup>
     <None Include="C:\Takemikazuchi\Програмна інженерія\WebApplication1\WebApplication1\PL\.editorconfig" />
     <None Include="C:\Users\Andriana\source\repos\GymBuddy1.0\PL\.editorconfig" />
+    <None Include="Views\TrainingCalendar\Index.cshtml" />
+    <None Include="Views\TrainingCalendar\TrainingCalendar.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
