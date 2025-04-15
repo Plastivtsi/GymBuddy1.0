@@ -1,0 +1,172 @@
+@model PL.ViewModels.TrainingCalendarViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Календар тренувань";
+
+    var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
+            };
+
+    // Перевірте, чи в Model.MonthlyTrainingCounts є правильні дані
+    var json = JsonSerializer.Serialize(Model.MonthlyTrainingCounts, options);
+
+    // Логування даних на сервері для перевірки
+    Console.WriteLine("Serialized MonthlyTrainingCounts: " + json);
+}
+
+<h2>Календар тренувань</h2>
+
+@if (Model.Trainings != null && Model.Trainings.Any())
+{
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Назва</th>
+                    <th>Опис</th>
+                    <th>Вправи</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var training in Model.Trainings)
+            {
+                    <tr>
+                        <td>@training.Date?.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@training.Name</td>
+                        <td>@training.Description</td>
+                        <td>
+                        @if (training.Exercises != null && training.Exercises.Any())
+                        {
+                                    <ul>
+                                @foreach (var exercise in training.Exercises)
+                                {
+                                                <li>@exercise.Name - @exercise.Repetitions reps, @exercise.Weight kg</li>
+                                }
+                                    </ul>
+                        }
+                        else
+                        {
+                                    <span>Немає вправ</span>
+                        }
+                        </td>
+                    </tr>
+            }
+            </tbody>
+        </table>
+
+        <h3>Загальний прогрес</h3>
+
+    @if (Model.MonthlyTrainingCounts != null)
+    {
+
+                <canvas id="monthlyProgressChart" width="400" height="200"></canvas>
+
+                <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        // Перевірка, чи Chart.js завантажено
+                        if (typeof Chart === 'undefined') {
+                            console.error('Chart.js не завантажено.');
+                            const chartContainer = document.getElementById('monthlyProgressChart');
+                            chartContainer.style.display = 'none';
+                            const errorMessage = document.createElement('div');
+                            errorMessage.className = 'alert alert-danger';
+                            errorMessage.textContent = 'Помилка: Не вдалося завантажити Chart.js.';
+                            chartContainer.parentNode.insertBefore(errorMessage, chartContainer);
+                            return;
+                        }
+
+                        // Перевірка даних monthlyCounts
+                        const monthlyCounts = @Html.Raw(json);
+                        console.log(monthlyCounts); // Перевірка структури даних у консолі
+
+                        const currentYear = @Model.CurrentYear;
+                        const previousYear = currentYear - 1;
+
+                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const currentYearData = [];
+                        const previousYearData = [];
+
+                        // Заповнення масивів для графіку
+                        for (let month = 1; month <= 12; month++) {
+                            if (monthlyCounts[month]) {
+                                currentYearData.push(monthlyCounts[month].currentYearCount || 0);
+                                previousYearData.push(monthlyCounts[month].previousYearCount || 0);
+                            } else {
+                                currentYearData.push(0);
+                                previousYearData.push(0);
+                            }
+                        }
+
+                        // Створення графіку
+                        const ctx = document.getElementById('monthlyProgressChart').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: months,
+                                datasets: [
+                                    {
+                                        label: currentYear,
+                                        data: currentYearData,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1
+                                    },
+                                    {
+                                        label: previousYear,
+                                        data: previousYearData,
+                                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                        borderColor: 'rgba(75, 192, 192, 1)',
+                                        borderWidth: 1
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Кількість тренувань'
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Місяць'
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: true,
+                                        position: 'top'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Загальний прогрес'
+                                    }
+                                }
+                            }
+                        });
+                    });
+                </script>
+    }
+    else
+    {
+                <div class="alert alert-warning" role="alert">
+                    Дані для гістограми відсутні!
+                </div>
+    }
+}
+else
+{
+        <p>No trainings found for the selected date range.</p>
+}
+
+<a asp-action="Index">Back to Search</a>
