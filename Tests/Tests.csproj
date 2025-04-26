@@ -32,5 +32,10 @@
   <ItemGroup>
     <Folder Include="ControllersTests\" />
   </ItemGroup>
-
+	<Target Name="pipelinePreDeployCopyAllFilesToOneFolder">
+		<ItemGroup>
+			<Content Include="**\*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(Content)" DestinationFolder="$(_PackageTempDir)" />
+	</Target>
 </Project>

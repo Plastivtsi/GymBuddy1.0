@@ -44,4 +44,11 @@
     <EditorConfigFiles Remove="C:\Users\Andriana\source\repos\GymBuddy1.0\DAL\.editorconfig" />
   </ItemGroup>
 
+	<Target Name="pipelinePreDeployCopyAllFilesToOneFolder">
+		<ItemGroup>
+			<Content Include="**\*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(Content)" DestinationFolder="$(_PackageTempDir)" />
+	</Target>	
+
 </Project>
