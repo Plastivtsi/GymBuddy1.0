@@ -62,8 +62,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run tests
-        run: dotnet test --no-restore --configuration Release
+      - name: Run tests and generate coverage report
+        run: dotnet test --no-restore --configuration Release /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.json /p:CoverletOutputFormat=json
 
       - name: Publish
         run: dotnet publish PL/PL.csproj --configuration Release --no-restore --output ./published
