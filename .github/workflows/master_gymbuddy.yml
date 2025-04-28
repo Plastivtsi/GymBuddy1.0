@@ -53,8 +53,16 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: Create TestResults directory
+        shell: powershell
+        run: mkdir TestResults -Force
+
+      - name: List test project contents
+        shell: powershell
+        run: dir Tests
+
       - name: Run tests and generate coverage report
-        run: dotnet test GymBuddy.sln --no-restore --configuration Release /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.xml /p:CoverletOutputFormat=opencover /p:UseSourceLink=true /p:Exclude="[xunit*]*" /p:ExcludeByFile="**/Migrations/*.cs"
+        run: dotnet test GymBuddy.sln --no-restore --configuration Release --verbosity detailed /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.xml /p:CoverletOutputFormat=opencover
 
       - name: Check if coverage report was generated
         shell: powershell
