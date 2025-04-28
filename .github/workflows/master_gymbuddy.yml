@@ -47,15 +47,6 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: SonarCloud Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: powershell
-        run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"Plastivtsi_GymBuddy1.0" /o:"plastivtsi" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.xml"
-          dotnet build
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
       - name: Restore dependencies
         run: dotnet restore
 
@@ -63,7 +54,27 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Run tests and generate coverage report
-        run: dotnet test --no-restore --configuration Release /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.xml /p:CoverletOutputFormat=opencover
+        run: dotnet test GymBuddy.sln --no-restore --configuration Release /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.xml /p:CoverletOutputFormat=opencover /p:UseSourceLink=true /p:Exclude="[xunit*]*" /p:ExcludeByFile="**/Migrations/*.cs"
+
+      - name: Check if coverage report was generated
+        shell: powershell
+        run: |
+          if (Test-Path TestResults/coverage.xml) {
+            Write-Output "Coverage file exists."
+            Get-Content TestResults/coverage.xml
+          } else {
+            Write-Output "Coverage file does not exist."
+            exit 1
+          }
+
+      - name: SonarCloud Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"Plastivtsi_GymBuddy1.0" /o:"plastivtsi" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.xml" /d:sonar.verbose=true /d:sonar.msbuild.testProjectPattern=".*Tests.*"
+          dotnet build
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Publish
         run: dotnet publish PL/PL.csproj --configuration Release --no-restore --output ./published
