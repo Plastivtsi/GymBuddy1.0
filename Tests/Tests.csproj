@@ -31,9 +31,6 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ControllersTests\" />
-  </ItemGroup>
 	<Target Name="pipelinePreDeployCopyAllFilesToOneFolder">
 		<ItemGroup>
 			<Content Include="**\*" />
