@@ -47,23 +47,46 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: SonarCloud Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: powershell
-        run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"Plastivtsi_GymBuddy1.0" /o:"plastivtsi" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          dotnet build
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: List solution and project files
+        shell: powershell
+        run: dir *.sln; dir Tests
+
+      - name: Create TestResults directory
+        shell: powershell
+        run: mkdir TestResults -Force
+
       - name: Run tests and generate coverage report
-        run: dotnet test --no-restore --configuration Release /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.json /p:CoverletOutputFormat=json
+        run: dotnet test Tests/Tests.csproj --no-restore --configuration Release --verbosity detailed /p:CollectCoverage=true /p:CoverletOutput=../TestResults/coverage.xml /p:CoverletOutputFormat=opencover /p:Include="[PL]*" /p:Include="[BLL]*" /p:Include="[DAL]*"
+
+      - name: List TestResults directory contents
+        shell: powershell
+        run: dir TestResults
+
+      - name: Check if coverage report was generated
+        shell: powershell
+        run: |
+          if (Test-Path TestResults/coverage.xml) {
+            Write-Output "Coverage file exists."
+            Get-Content TestResults/coverage.xml
+          } else {
+            Write-Output "Coverage file does not exist."
+            exit 1
+          }
+
+      - name: SonarCloud Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"Plastivtsi_GymBuddy1.0" /o:"plastivtsi" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.xml" /d:sonar.verbose=true /d:sonar.msbuild.testProjectPattern=".*Tests.*"
+          dotnet build
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Publish
         run: dotnet publish PL/PL.csproj --configuration Release --no-restore --output ./published
