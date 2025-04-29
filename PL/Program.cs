@@ -17,7 +17,7 @@ namespace PL
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.DataProtection;
-
+    //test
     public class Program
     {
         public static async Task Main(string[] args)
