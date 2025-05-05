@@ -12,11 +12,12 @@ namespace PL
     using BLL.Service;
     using BLL.Interfaces;
     using DAL.Interfaces;
-    //using DAL.Repositories;
     using DAL.Repositorie;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.DataProtection;
+    using Azure.Identity;
+    using Azure.Security.KeyVault.Secrets;
 
     public class Program
     {
@@ -27,31 +28,51 @@ namespace PL
             LoggingConfig.ConfigureLogging();
             builder.Host.UseSerilog();
 
-            // Реєстрація DbContext
+            string connectionString;
+
+            try
+            {
+                var keyVaultUrl = "https://gymbuddykey.vault.azure.net/";
+                var secretClient = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                var dbSecret = await secretClient.GetSecretAsync("DatabaseConnectionString");
+                connectionString = dbSecret.Value.Value; // Виправлено: прибрано зайве .Value
+                Console.WriteLine("Секрет успішно отримано: {0}", connectionString);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Помилка підключення до Key Vault: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                // Резервний рядок підключення для тестування
+                connectionString = "Host=breakdatabase.postgres.database.azure.com;Port=5432;Database=GymBuddy;Username=postgres;Password=12345678bp!";
+                Console.WriteLine("Використовується резервний рядок підключення.");
+                // Прибрано throw, щоб програма продовжила роботу
+            }
+
+            // Реєстрація DbContext із рядком підключення
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+                options.UseNpgsql(connectionString, npgsqlOptions => { })
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors());
+
             builder.Services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")))
-            .SetApplicationName("GymBuddy");
+                .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")))
+                .SetApplicationName("GymBuddy");
 
             builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
             {
-                options.User.AllowedUserNameCharacters = null; // Дозволяє будь-які символи
+                options.User.AllowedUserNameCharacters = null;
                 options.User.RequireUniqueEmail = false;
 
-                options.Password.RequiredLength = 6; // Залишаємо мінімальну довжину 6 символів
-                options.Password.RequireDigit = false; // Вимикаємо вимогу цифр
-                options.Password.RequireLowercase = false; // Вимикаємо вимогу малих букв
-                options.Password.RequireUppercase = false; // Вимикаємо вимогу великих букв
-                options.Password.RequireNonAlphanumeric = false; // Вимикаємо вимогу спеціальних символів
-                options.Password.RequiredUniqueChars = 1; // Вимикаємо вимогу унікальних символів
-                // Налаштування часу дії токена
+                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredUniqueChars = 1;
+
                 options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
                 options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultProvider;
                 options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultProvider;
-
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
@@ -64,6 +85,7 @@ namespace PL
                 logging.AddDebug();
                 logging.SetMinimumLevel(LogLevel.Debug);
             });
+
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
@@ -74,7 +96,6 @@ namespace PL
             });
 
             builder.Services.AddControllersWithViews();
-
             builder.Services.AddAuthorization();
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
@@ -82,21 +103,13 @@ namespace PL
             });
 
             // Реєстрація репозиторіїв та сервісів
-
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITrainingRepository, TrainingRepository>();
             builder.Services.AddScoped<ITrainingService, TrainingService>();
             builder.Services.AddScoped<ITrainingHistoryService, TrainingHistoryService>();
             builder.Services.AddScoped<ITrainingHistoryRepository, TrainingHistoryRepository>();
-
             builder.Services.AddScoped<ITrainingCalendar, TrainingCalendar>();
-
-
-
             builder.Services.AddScoped<IEmailService, EmailService>();
-
-
-            // builder.Services.AddScoped<ICreateUser, Autorization>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
             builder.Services.AddControllersWithViews();
 
@@ -116,29 +129,24 @@ namespace PL
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-                // Перевіряємо, чи існує роль "User"
                 if (!await roleManager.RoleExistsAsync("User"))
                 {
-                    // Створюємо роль "User", якщо її немає
                     var role = new IdentityRole<int> { Name = "User" };
-                    var result = await roleManager.CreateAsync(role);
+                    await roleManager.CreateAsync(role);
                     Log.Information("Роль 'User' створено");
                 }
-                // Опціонально: створюємо роль "Admin" (якщо потрібно)
                 if (!await roleManager.RoleExistsAsync("Admin"))
                 {
                     var role = new IdentityRole<int> { Name = "Admin" };
                     await roleManager.CreateAsync(role);
-
                 }
                 if (!await roleManager.RoleExistsAsync("Blocked"))
                 {
                     var role = new IdentityRole<int> { Name = "Blocked" };
                     await roleManager.CreateAsync(role);
-
                 }
-
             }
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -157,7 +165,7 @@ namespace PL
                 pattern: "{controller=Account}/{action=Login}/{id?}");
 
             Log.Information("Застосунок запущено");
-            await app.RunAsync(); 
+            await app.RunAsync();
         }
     }
 }
