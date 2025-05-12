@@ -7,6 +7,10 @@ using DAL.Models;
 using DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PL.Controllers
 {
@@ -15,16 +19,68 @@ namespace PL.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly ApplicationDbContext _dbContext;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
+        public HomeController(
+            ILogger<HomeController> logger,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole<int>> roleManager,
+            ApplicationDbContext dbContext)
         {
-            _userManager = userManager;
             _logger = logger;
+            _userManager = userManager;
             _roleManager = roleManager;
+            _dbContext = dbContext;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Отримуємо дані за останні 30 днів
+            var endDate = DateTime.UtcNow.Date;
+            var startDate = endDate.AddDays(-29);
+
+            // Отримуємо всі вправи користувача за цей період
+            var exercises = await _dbContext.Exercises
+                .Include(e => e.Training)
+                .Where(e => e.Training.UserId == user.Id &&
+                            e.Training.Date.HasValue &&
+                            e.Training.Date.Value >= startDate &&
+                            e.Training.Date.Value <= endDate)
+                .ToListAsync();
+
+            // Групуємо за датою та рахуємо суму (вага * повторення)
+            var groupedData = exercises
+                .GroupBy(e => e.Training.Date.Value.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    TotalWeight = g.Sum(e => e.Repetitions * e.Weight)
+                })
+                .OrderBy(x => x.Date)
+                .ToList();
+
+            // Створюємо списки для діаграми
+            var chartLabels = new List<string>();
+            var chartData = new List<double>();
+
+            // Заповнюємо дані для всіх днів у діапазоні
+            for (var date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                chartLabels.Add(date.ToString("dd.MM.yyyy"));
+
+                var dataForDate = groupedData.FirstOrDefault(g => g.Date == date);
+                chartData.Add(dataForDate != null ? dataForDate.TotalWeight : 0);
+            }
+
+            ViewBag.ChartLabels = chartLabels;
+            ViewBag.ChartData = chartData;
+
             return View();
         }
 
@@ -164,23 +220,6 @@ namespace PL.Controllers
             }
 
             return RedirectToAction("HomeAdmin");
-        }
-
-        public IActionResult Profile()
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == 0)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var user = _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Error");
-            }
-
-            return View(user);
         }
 
         public IActionResult Privacy()
