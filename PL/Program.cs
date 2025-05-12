@@ -30,7 +30,7 @@ namespace PL
             builder.Host.UseSerilog();
 
             string connectionString;
-
+             
             try
             {
                 var keyVaultUrl = "https://gymbuddykey.vault.azure.net/";
