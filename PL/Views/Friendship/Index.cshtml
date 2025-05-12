@@ -5,30 +5,44 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Список друзів</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Список друзів</h2>
 
-<form method="get" action="@Url.Action("Search", "Friendship")">
-    <input type="text" name="name" placeholder="Пошук друга за ім'ям" />
-    <button type="submit">Пошук</button>
-</form>
+    <form method="get" action="@Url.Action("Search", "Friendship")" class="mb-4 row g-2">
+        <div class="col-sm-8">
+            <input type="text" name="name" class="form-control" placeholder="Пошук друга за ім'ям" />
+        </div>
+        <div class="col-sm-4">
+            <button type="submit" class="btn btn-primary w-100">Пошук</button>
+        </div>
+    </form>
 
-@if (Model.Count == 0)
-{
-    <p>У вас немає друзів</p>
-}
-else
-{
-    <ul>
-        @foreach (var friend in Model)
-        {
-            <li>
-                @friend.UserName (@friend.Email)
-                <form method="post" action="@Url.Action("Unfollow", "Friendship")" style="display:inline;">
-                    <input type="hidden" name="friendId" value="@friend.Id" />
-                    <button type="submit" class="btn btn-danger btn-sm">Відмінити слідкування</button>
-                </form>
-            </li>
-        }
-    </ul>
-}
-
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">У вас немає друзів</div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var friend in Model)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <strong>@friend.UserName</strong> <span class="text-muted">(@friend.Email)</span>
+                    </div>
+                    <div class="d-flex gap-2 mt-2 mt-sm-0">
+                        <form method="post" action="@Url.Action("Unfollow", "Friendship")" class="m-0">
+                            <input type="hidden" name="friendId" value="@friend.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Відписатись</button>
+                        </form>
+                        <a href="@Url.Action("ViewFriendRecords", "Friendship", new { friendId = friend.Id })"
+                           class="btn btn-outline-primary btn-sm"
+                           target="_blank">
+                            Рекорди
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

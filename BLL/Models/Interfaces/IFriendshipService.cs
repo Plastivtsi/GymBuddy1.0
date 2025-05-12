@@ -18,7 +18,6 @@ namespace BLL.Models.Interfaces
         Task UnBlock(int userId1, int userId2);
         Task Block(int userId1, int userId2);
         Task AcceptRequest(int userId1, int userId2);
-
-
+        Task<List<ExerciseRecordViewModel>> GetFriendExerciseRecords(int friendId);
     }
 }

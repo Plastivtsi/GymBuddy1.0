@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using YourProject.Controllers;
 
 namespace PL.Controllers
 {
@@ -12,14 +13,13 @@ namespace PL.Controllers
     {
         private readonly IFriendshipService _friendshipService;
         private readonly UserManager<User> _userManager;
+        private readonly ApplicationDbContext _context; // Added field
 
-        
-
-        public FriendshipController(UserManager<User> userManager,IFriendshipService friendshipService)
+        public FriendshipController(UserManager<User> userManager,IFriendshipService friendshipService, ApplicationDbContext context)
         {
             _userManager = userManager;
             _friendshipService = friendshipService;
-            
+            _context = context;
 
         }
 
@@ -99,6 +99,17 @@ namespace PL.Controllers
             var userId = Int32.Parse(_userManager.GetUserId(User));
             await _friendshipService.UnBlock(userId, friendId);
             return RedirectToAction("RequestAndBanned");
+        }
+
+        public async Task<IActionResult> ViewFriendRecords(int friendId)
+        {
+            var userId = Int32.Parse(_userManager.GetUserId(User));
+            var friendRecords = await _friendshipService.GetFriendExerciseRecords(friendId);
+
+            var friend = await _context.Users.FirstOrDefaultAsync(u => u.Id == friendId);
+            ViewBag.FriendName = friend?.UserName ?? "Friend";
+
+            return View(friendRecords);
         }
 
         //[HttpPost]

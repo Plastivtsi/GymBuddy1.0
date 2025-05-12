@@ -1,0 +1,41 @@
+﻿@model List<BLL.Models.ExerciseRecordViewModel>
+
+@{
+    ViewData["Title"] = "Friend's Exercise Records";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewBag.FriendName Рекорди </h2>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Рекорди вправ</h5>
+        <hr />
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Вправа</th>
+                        <th>Максимальна вага</th>
+                        <th>Максимальна кількість повторень</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in Model)
+                    {
+                        <tr>
+                            <td>@record.ExerciseName</td>
+                            <td>@record.MaxWeight кг</td>
+                            <td>@record.MaxReps</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-center">Рекорди відсутні. Count: @Model?.Count ?? 0</p>
+        }
+    </div>
+</div>
