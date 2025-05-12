@@ -11,6 +11,8 @@ using Xunit;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading;
 
 namespace PL.Tests
 {
@@ -29,7 +31,99 @@ namespace PL.Tests
                 Mock.Of<IRoleStore<IdentityRole<int>>>(), null, null, null, null);
             _loggerMock = new Mock<ILogger<HomeController>>();
 
-            _controller = new HomeController(_loggerMock.Object, _userManagerMock.Object, _roleManagerMock.Object);
+            // Set up DbContextOptions with in-memory database
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString()); // Unique DB name for isolation
+            var options = optionsBuilder.Options;
+
+            // Create real ApplicationDbContext for tests
+            var dbContext = new ApplicationDbContext(options);
+
+            _controller = new HomeController(
+                _loggerMock.Object,
+                _userManagerMock.Object,
+                _roleManagerMock.Object,
+                dbContext);
+        }
+
+        [Fact]
+        public async Task Index_UserNotAuthenticated_RedirectsToLogin()
+        {
+            // Arrange
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((User)null);
+
+            // Act
+            var result = await _controller.Index();
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Login", redirectResult.ActionName);
+            Assert.Equal("Account", redirectResult.ControllerName);
+        }
+
+        [Fact]
+        public async Task Index_AuthenticatedUser_ReturnsViewWithChartData()
+        {
+            // Arrange
+            var user = new User { Id = 1, UserName = "TestUser" };
+            var training = new Training
+            {
+                Id = 1,
+                UserId = 1,
+                Date = DateTime.UtcNow.Date,
+                Name = "Test Training", // Required property
+                Description = "Test Description" // Required property
+            };
+
+            var exercise = new Exercise
+            {
+                Id = 1,
+                TrainingId = 1,
+                Training = training,
+                Repetitions = 10,
+                Weight = 50,
+                Name = "Test Exercise", // Required property
+                Notes = "Test Notes" // Required property
+            };
+
+            training.Exercises = new List<Exercise> { exercise };
+
+            // Set up in-memory database
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
+            var dbContext = new ApplicationDbContext(optionsBuilder.Options);
+
+            // Add test data to in-memory database
+            dbContext.Users.Add(user);
+            dbContext.Trainings.Add(training);
+            dbContext.Exercises.Add(exercise);
+            await dbContext.SaveChangesAsync();
+
+            // Create controller with in-memory database
+            var controller = new HomeController(
+                _loggerMock.Object,
+                _userManagerMock.Object,
+                _roleManagerMock.Object,
+                dbContext);
+
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
+
+            // Act
+            var result = await controller.Index();
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.NotNull(viewResult.ViewData["ChartLabels"]);
+            Assert.NotNull(viewResult.ViewData["ChartData"]);
+            var chartLabels = Assert.IsAssignableFrom<List<string>>(viewResult.ViewData["ChartLabels"]);
+            var chartData = Assert.IsAssignableFrom<List<double>>(viewResult.ViewData["ChartData"]);
+            Assert.Equal(30, chartLabels.Count); // 30 days
+            Assert.Equal(30, chartData.Count);
+
+            // Find the day with data
+            var todayIndex = chartLabels.IndexOf(DateTime.UtcNow.Date.ToString("dd.MM.yyyy"));
+            Assert.NotEqual(-1, todayIndex);
+            Assert.Equal(500, chartData[todayIndex]); // 10 reps * 50 weight
         }
 
         [Fact]
@@ -58,7 +152,6 @@ namespace PL.Tests
                 new User { Id = 2, UserName = "TestUser", Email = "test@example.com" }
             };
 
-            // Create an IQueryable that supports async operations
             var dbSetMock = new Mock<DbSet<User>>();
             dbSetMock.As<IQueryable<User>>().Setup(m => m.Provider).Returns(users.AsQueryable().Provider);
             dbSetMock.As<IQueryable<User>>().Setup(m => m.Expression).Returns(users.AsQueryable().Expression);
