@@ -207,8 +207,30 @@ namespace BLL.Models
             }
             return Userlist;
         }
+        public async Task<List<ExerciseRecordViewModel>> GetFriendExerciseRecords(int friendId)
+        {
+            try
+            {
+                var records = await _context.Trainings
+                    .Where(w => w.UserId == friendId && w.Template == false)
+                    .SelectMany(w => w.Exercises)
+                    .GroupBy(e => e.Name)
+                    .Select(g => new ExerciseRecordViewModel
+                    {
+                        ExerciseName = g.Key,
+                        MaxWeight = g.Max(e => e.Weight),
+                        MaxReps = g.Max(e => e.Repetitions)
+                    })
+                    .ToListAsync();
 
-
+                return records;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching exercise records for friend ID: {friendId}");
+                return new List<ExerciseRecordViewModel>();
+            }
+        }
 
 
     }
