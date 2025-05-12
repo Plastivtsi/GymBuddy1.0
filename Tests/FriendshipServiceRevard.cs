@@ -1,234 +1,322 @@
-﻿using Xunit;
+﻿using BLL.Models;
+using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using BLL.Models;
-using DAL.Models;
+using System.Threading.Tasks;
+using Xunit;
+using Microsoft.AspNetCore.Identity;
 
-public class FriendshipServiceRevard
+namespace BLL.Tests
 {
-    private ApplicationDbContext GetContext(string dbName)
+    public class FriendshipServiceTests
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(dbName)
-            .Options;
-        return new ApplicationDbContext(options);
-    }
+        private readonly DbContextOptions<ApplicationDbContext> _options;
+        private readonly Mock<ILogger<FriendshipService>> _mockLogger;
+        private readonly Mock<UserManager<User>> _mockUserManager;
 
-    [Fact]
-    public async Task ReturnsSingleExerciseRecord()
-    {
-        using var context = GetContext("TestDb1");
-        context.Trainings.Add(new Training
+        public FriendshipServiceTests()
         {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>
+            _options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString()) // Unique database per test
+                .EnableSensitiveDataLogging()
+                .Options;
+            _mockLogger = new Mock<ILogger<FriendshipService>>();
+            _mockUserManager = new Mock<UserManager<User>>(
+                Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
+        }
+
+        private FriendshipService CreateService(ApplicationDbContext context)
+        {
+            return new FriendshipService(_mockUserManager.Object, context, _mockLogger.Object);
+        }
+
+        [Fact]
+        public async Task GetFriendExerciseRecords_ReturnsSingleExerciseRecord()
+        {
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var training = new Training
             {
-                new Exercise { Name = "Push Up", Weight = 0, Repetitions = 20 }
-            }
-        });
-        await context.SaveChangesAsync();
+                UserId = friendId,
+                Template = false,
+                Name = "Workout 1",
+                Description = "Strength training",
+                Exercises = new List<Exercise>
+                {
+                    new Exercise { Name = "Bench Press", Weight = 100, Repetitions = 10, Notes = "Good form" }
+                }
+            };
+            context.Trainings.Add(training);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Single(result);
-        Assert.Equal("Push Up", result[0].ExerciseName);
-        Assert.Equal(0, result[0].MaxWeight);
-        Assert.Equal(20, result[0].MaxReps);
-    }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Bench Press", result[0].ExerciseName);
+            Assert.Equal(100, result[0].MaxWeight);
+            Assert.Equal(10, result[0].MaxReps);
+        }
 
-    [Fact]
-    public async Task ReturnsMaxWeightAndReps()
-    {
-        using var context = GetContext("TestDb2");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_ReturnsMultipleExercises()
         {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var training = new Training
             {
-                new Exercise { Name = "Squat", Weight = 100, Repetitions = 10 },
-                new Exercise { Name = "Squat", Weight = 120, Repetitions = 8 }
-            }
-        });
-        await context.SaveChangesAsync();
+                UserId = friendId,
+                Template = false,
+                Name = "Workout 1",
+                Description = "Full body",
+                Exercises = new List<Exercise>
+                {
+                    new Exercise { Name = "Squat", Weight = 150, Repetitions = 8, Notes = "Deep squat" },
+                    new Exercise { Name = "Deadlift", Weight = 200, Repetitions = 6, Notes = "Strong pull" }
+                }
+            };
+            context.Trainings.Add(training);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Single(result);
-        Assert.Equal("Squat", result[0].ExerciseName);
-        Assert.Equal(120, result[0].MaxWeight);
-        Assert.Equal(10, result[0].MaxReps);
-    }
+            // Assert
+            Assert.Equal(2, result.Count);
+            Assert.Contains(result, r => r.ExerciseName == "Squat" && r.MaxWeight == 150 && r.MaxReps == 8);
+            Assert.Contains(result, r => r.ExerciseName == "Deadlift" && r.MaxWeight == 200 && r.MaxReps == 6);
+        }
 
-    [Fact]
-    public async Task IgnoresTemplateTrainings()
-    {
-        using var context = GetContext("TestDb3");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_IgnoresTemplateTrainings()
         {
-            UserId = 1,
-            Template = true,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var trainings = new List<Training>
             {
-                new Exercise { Name = "Deadlift", Weight = 150, Repetitions = 5 }
-            }
-        });
-        await context.SaveChangesAsync();
+                new Training
+                {
+                    UserId = friendId,
+                    Template = true, // Ignored
+                    Name = "Template Workout",
+                    Description = "Template",
+                    Exercises = new List<Exercise>
+                    {
+                        new Exercise { Name = "Push-up", Weight = 0, Repetitions = 20, Notes = "Bodyweight" }
+                    }
+                },
+                new Training
+                {
+                    UserId = friendId,
+                    Template = false,
+                    Name = "Real Workout",
+                    Description = "Strength",
+                    Exercises = new List<Exercise>
+                    {
+                        new Exercise { Name = "Bench Press", Weight = 120, Repetitions = 12, Notes = "Stable" }
+                    }
+                }
+            };
+            context.Trainings.AddRange(trainings);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Empty(result);
-    }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Bench Press", result[0].ExerciseName);
+        }
 
-    [Fact]
-    public async Task ReturnsMultipleExerciseTypes()
-    {
-        using var context = GetContext("TestDb4");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_ReturnsEmptyWhenNoTrainings()
         {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetFriendExerciseRecords_HandlesSameExerciseDifferentWeights()
+        {
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var training = new Training
             {
-                new Exercise { Name = "Bench", Weight = 90, Repetitions = 8 },
-                new Exercise { Name = "Row", Weight = 60, Repetitions = 12 }
-            }
-        });
-        await context.SaveChangesAsync();
+                UserId = friendId,
+                Template = false,
+                Name = "Workout 1",
+                Description = "Strength",
+                Exercises = new List<Exercise>
+                {
+                    new Exercise { Name = "Squat", Weight = 100, Repetitions = 10, Notes = "Light set" },
+                    new Exercise { Name = "Squat", Weight = 120, Repetitions = 8, Notes = "Heavy set" }
+                }
+            };
+            context.Trainings.Add(training);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Equal(2, result.Count);
-        Assert.Contains(result, r => r.ExerciseName == "Bench");
-        Assert.Contains(result, r => r.ExerciseName == "Row");
-    }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Squat", result[0].ExerciseName);
+            Assert.Equal(120, result[0].MaxWeight);
+            Assert.Equal(10, result[0].MaxReps); // Max reps across all instances
+        }
 
-    [Fact]
-    public async Task IgnoresOtherUsers()
-    {
-        using var context = GetContext("TestDb5");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_HandlesZeroWeight()
         {
-            UserId = 2,
-            Template = false,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var training = new Training
             {
-                new Exercise { Name = "Pull Up", Weight = 0, Repetitions = 10 }
-            }
-        });
-        await context.SaveChangesAsync();
+                UserId = friendId,
+                Template = false,
+                Name = "Workout 1",
+                Description = "Bodyweight",
+                Exercises = new List<Exercise>
+                {
+                    new Exercise { Name = "Push-up", Weight = 0, Repetitions = 25, Notes = "Endurance" }
+                }
+            };
+            context.Trainings.Add(training);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Empty(result);
-    }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Push-up", result[0].ExerciseName);
+            Assert.Equal(0, result[0].MaxWeight);
+            Assert.Equal(25, result[0].MaxReps);
+        }
 
-    [Fact]
-    public async Task ReturnsEmpty_WhenNoExercises()
-    {
-        using var context = GetContext("TestDb6");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_HandlesWhitespaceInExerciseName()
         {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>()
-        });
-        await context.SaveChangesAsync();
-
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
-
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public async Task HandlesSameWeightWithDifferentReps()
-    {
-        using var context = GetContext("TestDb7");
-        context.Trainings.Add(new Training
-        {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var training = new Training
             {
-                new Exercise { Name = "Dip", Weight = 40, Repetitions = 8 },
-                new Exercise { Name = "Dip", Weight = 40, Repetitions = 12 }
-            }
-        });
-        await context.SaveChangesAsync();
+                UserId = friendId,
+                Template = false,
+                Name = "Workout 1",
+                Description = "Strength",
+                Exercises = new List<Exercise>
+                {
+                    new Exercise { Name = " Barbell Bench Press ", Weight = 130, Repetitions = 10, Notes = "Controlled" }
+                }
+            };
+            context.Trainings.Add(training);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Single(result);
-        Assert.Equal(40, result[0].MaxWeight);
-        Assert.Equal(12, result[0].MaxReps);
-    }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal(" Barbell Bench Press ", result[0].ExerciseName);
+            Assert.Equal(130, result[0].MaxWeight);
+            Assert.Equal(10, result[0].MaxReps);
+        }
 
-    [Fact]
-    public async Task HandlesWhitespaceInExerciseName()
-    {
-        using var context = GetContext("TestDb8");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_HandlesMultipleTrainings()
         {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var trainings = new List<Training>
             {
-                new Exercise { Name = "Plank ", Weight = 0, Repetitions = 60 },
-                new Exercise { Name = "Plank", Weight = 0, Repetitions = 90 }
-            }
-        });
-        await context.SaveChangesAsync();
+                new Training
+                {
+                    UserId = friendId,
+                    Template = false,
+                    Name = "Workout 1",
+                    Description = "Day 1",
+                    Exercises = new List<Exercise>
+                    {
+                        new Exercise { Name = "Squat", Weight = 140, Repetitions = 10, Notes = "Warm-up" }
+                    }
+                },
+                new Training
+                {
+                    UserId = friendId,
+                    Template = false,
+                    Name = "Workout 2",
+                    Description = "Day 2",
+                    Exercises = new List<Exercise>
+                    {
+                        new Exercise { Name = "Squat", Weight = 150, Repetitions = 8, Notes = "Max effort" }
+                    }
+                }
+            };
+            context.Trainings.AddRange(trainings);
+            await context.SaveChangesAsync();
 
-        // GroupBy fails if names differ by whitespace; clean beforehand if needed in service
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Equal(2, result.Count); // depending on implementation — both "Plank" and "Plank " may count
-    }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Squat", result[0].ExerciseName);
+            Assert.Equal(150, result[0].MaxWeight);
+            Assert.Equal(10, result[0].MaxReps);
+        }
 
-    [Fact]
-    public async Task HandlesNoTrainings()
-    {
-        using var context = GetContext("TestDb9");
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
-
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public async Task HandlesZeroWeightCorrectly()
-    {
-        using var context = GetContext("TestDb10");
-        context.Trainings.Add(new Training
+        [Fact]
+        public async Task GetFriendExerciseRecords_HandlesNoExercisesInTraining()
         {
-            UserId = 1,
-            Template = false,
-            Exercises = new List<Exercise>
+            // Arrange
+            using var context = new ApplicationDbContext(_options);
+            var service = CreateService(context);
+            var friendId = 1;
+            var training = new Training
             {
-                new Exercise { Name = "Run", Weight = 0, Repetitions = 100 }
-            }
-        });
-        await context.SaveChangesAsync();
+                UserId = friendId,
+                Template = false,
+                Name = "Empty Workout",
+                Description = "No exercises",
+                Exercises = new List<Exercise>()
+            };
+            context.Trainings.Add(training);
+            await context.SaveChangesAsync();
 
-        var service = new FriendshipService(context);
-        var result = await service.GetFriendExerciseRecords(1);
+            // Act
+            var result = await service.GetFriendExerciseRecords(friendId);
 
-        Assert.Single(result);
-        Assert.Equal(0, result[0].MaxWeight);
-        Assert.Equal(100, result[0].MaxReps);
+            // Assert
+            Assert.Empty(result);
+        }
+
     }
-
 }
