@@ -11,7 +11,6 @@ namespace BLL.Service
     public class TrainingService : ITrainingService
     {
         private readonly ITrainingRepository _trainingRepository;
-
         public TrainingService(ITrainingRepository trainingRepository)
         {
             _trainingRepository = trainingRepository ?? throw new ArgumentNullException(nameof(trainingRepository));
@@ -55,7 +54,6 @@ namespace BLL.Service
                 .ToList();
         }
 
-        // Оновлений метод для отримання шаблонних тренувань із фільтром за користувачем
         public async Task<List<Training>> GetTemplateTrainingsWithExercisesAsync(int? userId = null)
         {
             var trainings = await _trainingRepository.SearchTrainingsAsync(null, null, userId);
@@ -71,25 +69,25 @@ namespace BLL.Service
 
             if (template == null)
             {
-                throw new ArgumentException("Template training not found");
+                throw new ArgumentException("Шаблон тренування не знайдено");
             }
 
             var newTraining = new Training
             {
                 Name = template.Name,
-                Date = DateTime.Now,
+                Date = DateTime.UtcNow,
                 Time = template.Time,
                 Description = template.Description,
                 UserId = userId,
-                Template = false,
+                Template = true,
                 Exercises = updatedExercises ?? template.Exercises.Select(e => new Exercise
                 {
                     Name = e.Name,
                     Weight = e.Weight,
                     Repetitions = e.Repetitions,
                     Notes = e.Notes,
-                    Template = false
-                }).ToList(),
+                    Template = true
+                }).ToList()
             };
 
             await _trainingRepository.CreateTrainingAsync(newTraining);

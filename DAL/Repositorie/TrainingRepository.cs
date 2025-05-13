@@ -10,9 +10,7 @@ namespace DAL.Repositorie
 {
     public class TrainingRepository : ITrainingRepository
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<TrainingRepository> _logger;
-
+        private readonly ApplicationDbContext _context; private readonly ILogger _logger;
         public TrainingRepository(ApplicationDbContext context, ILogger<TrainingRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -34,7 +32,6 @@ namespace DAL.Repositorie
                 throw new ArgumentNullException(nameof(training));
             }
 
-            // Перетворюємо Date у UTC перед збереженням
             if (training.Date.HasValue && training.Date.Value.Kind != DateTimeKind.Utc)
             {
                 training.Date = DateTime.SpecifyKind(training.Date.Value, DateTimeKind.Utc);
@@ -55,7 +52,6 @@ namespace DAL.Repositorie
                 throw new ArgumentNullException(nameof(training));
             }
 
-            // Знаходимо існуюче тренування разом із пов’язаними вправами
             var existingTraining = await _context.Trainings
                 .Include(t => t.Exercises)
                 .FirstOrDefaultAsync(t => t.Id == training.Id);
@@ -68,18 +64,13 @@ namespace DAL.Repositorie
 
             _logger.LogInformation("Existing training found: {@ExistingTraining}", existingTraining);
 
-            // Перетворюємо Date у UTC перед оновленням
             if (training.Date.HasValue && training.Date.Value.Kind != DateTimeKind.Utc)
             {
                 training.Date = DateTime.SpecifyKind(training.Date.Value, DateTimeKind.Utc);
             }
 
-            // Оновлюємо основні поля тренування
-            _logger.LogInformation("Updating main fields of Training ID {TrainingId}", training.Id);
             _context.Entry(existingTraining).CurrentValues.SetValues(training);
 
-            // Оновлюємо вправи
-            _logger.LogInformation("Removing old exercises for Training ID {TrainingId}", training.Id);
             var existingExercises = existingTraining.Exercises.ToList();
             foreach (var exercise in existingExercises)
             {
@@ -87,26 +78,19 @@ namespace DAL.Repositorie
             }
             existingTraining.Exercises.Clear();
 
-            // Додаємо нові вправи
             if (training.Exercises != null && training.Exercises.Any())
             {
                 _logger.LogInformation("Adding new exercises for Training ID {TrainingId}", training.Id);
                 foreach (var exercise in training.Exercises)
                 {
-                    exercise.TrainingId = training.Id; // Переконуємося, що TrainingId встановлений
-                    exercise.Id = 0; // Скидаємо Id, щоб Entity Framework створив нові записи
+                    exercise.TrainingId = training.Id;
+                    exercise.Id = 0;
                     existingTraining.Exercises.Add(exercise);
                 }
             }
-            else
-            {
-                _logger.LogInformation("No exercises to add for Training ID {TrainingId}", training.Id);
-            }
 
-            // Зберігаємо зміни
             _logger.LogInformation("Saving changes to database for Training ID {TrainingId}", training.Id);
-            var changesSaved = await _context.SaveChangesAsync();
-            _logger.LogInformation("Changes saved successfully for Training ID {TrainingId}. Number of changes: {ChangesSaved}", training.Id, changesSaved);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Training>> SearchTrainingsAsync(string? name, DateTime? date, int? userId)
@@ -121,7 +105,6 @@ namespace DAL.Repositorie
 
             if (date.HasValue)
             {
-                // Перетворюємо Date у UTC для пошуку
                 var utcDate = date.Value.Kind != DateTimeKind.Utc
                     ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc)
                     : date.Value;

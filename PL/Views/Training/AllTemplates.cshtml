@@ -1,24 +1,13 @@
 ﻿@model List<DAL.Models.Training>
 
 @{
-    ViewData["Title"] = "Мої шаблонні тренування";
+    ViewData["Title"] = "Готові тренування";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center my-4">
-        <h1>Мої шаблонні тренування</h1>
-        <a href="@Url.Action("Create", "TrainingCreation")" class="btn btn-success">Створити тренування</a>
-    </div>
-    <div class="navigation-buttons" style="margin: 20px 0;">
-        <a href="@Url.Action("Index", "TrainingHistory")" class="btn btn-success">Переглянути історію тренувань</a>
-        <a href="@Url.Action("AllTemplates", "Training")" class="btn btn-info">Готові тренування</a>
-    </div>
+    <h1 class="my-4">Готові тренування</h1>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
@@ -27,7 +16,7 @@
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info" role="alert">
-            У вас ще немає шаблонних тренувань. Створіть своє перше тренування!
+            Немає доступних шаблонних тренувань.
         </div>
     }
     else
@@ -39,6 +28,7 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">@training.Name <span class="badge bg-info">Шаблон</span></h5>
+                            <p class="card-text">Опис: @(training.Description ?? "Без опису")</p>
                             <div class="exercises-list">
                                 @if (training.Exercises != null && training.Exercises.Any())
                                 {
@@ -60,11 +50,11 @@
                                 }
                             </div>
                         </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <a href="@Url.Action("StartTraining", "Training", new { id = training.Id })"
-                               class="btn btn-primary">Розпочати</a>
-                            <a href="@Url.Action("Edit", "Training", new { id = training.Id })"
-                               class="btn btn-secondary">Змінити</a>
+                        <div class="card-footer">
+                            <form asp-action="CopyTemplate" asp-controller="Training" method="post">
+                                <input type="hidden" name="templateTrainingId" value="@training.Id" />
+                                <button type="submit" class="btn btn-success">Додати собі</button>
+                            </form>
                         </div>
                     </div>
                 </div>
