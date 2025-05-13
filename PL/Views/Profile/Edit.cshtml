@@ -1,45 +1,49 @@
-  @model DAL.Models.User
+@model DAL.Models.User
 
-  @{
-      ViewData["Title"] = "Редагування профілю";
-      Layout = "~/Views/Shared/_Layout.cshtml";
+@{
+    ViewData["Title"] = "Редагування профілю";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
-  }
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-   @if (TempData["SuccessMessage"] != null)
-  {
-      <div class="alert alert-success">
-          @TempData["SuccessMessage"]
-      </div>
-  } 
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Редагування профілю</h2>
 
-  <h2>Редагування профілю</h2>
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="bg-green-100 text-green-800 p-4 rounded-md mb-6">
+            @TempData["SuccessMessage"]
+        </div>
+    }
 
-  <form asp-action="Edit" method="post">
-      <input type="hidden" asp-for="Id" /> <!-- Це важливо для передачі Id користувача -->
-      <div class="form-group mb-4">
-        <label asp-for="UserName">Ім'я</label>
-        <input asp-for="UserName" class="form-control form-control-lg" required />
-        <span asp-validation-for="UserName" class="text-danger"></span>
-      </div>
-      <div class="form-group mb-4">
-          <label asp-for="Email">Електронна пошта</label>
-          <input asp-for="Email" class="form-control form-control-lg" required type="email" />
-          <span asp-validation-for="Email" class="text-danger"></span>
-      </div>
-      <div class="form-group mb-4">
-          <label asp-for="Weight">Вага (кг)</label>
-          <input asp-for="Weight" class="form-control form-control-lg" type="number" step="0.1" required />
-          <span asp-validation-for="Weight" class="text-danger"></span>
-      </div>
-      <div class="form-group mb-4">
-          <label asp-for="Height">Зріст (см)</label>
-          <input asp-for="Height" class="form-control form-control-lg" type="number" step="0.1" required />
-          <span asp-validation-for="Height" class="text-danger"></span>
-      </div>
-      <div class="form-group mt-4 text-center">
-          <button type="submit" class="btn btn-primary btn-lg">Зберегти</button>
-      </div>
-  </form>
-
-
+    <!-- Edit Profile Form -->
+    <form asp-action="Edit" method="post" class="bg-white shadow-md rounded-lg p-6">
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-4">
+            <label asp-for="UserName" class="block text-gray-700 font-medium mb-1">Ім'я</label>
+            <input asp-for="UserName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <span asp-validation-for="UserName" class="text-red-600 text-sm"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Email" class="block text-gray-700 font-medium mb-1">Електронна пошта</label>
+            <input asp-for="Email" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required type="email" />
+            <span asp-validation-for="Email" class="text-red-600 text-sm"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Weight" class="block text-gray-700 font-medium mb-1">Вага (кг)</label>
+            <input asp-for="Weight" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" type="number" step="0.1" required />
+            <span asp-validation-for="Weight" class="text-red-600 text-sm"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Height" class="block text-gray-700 font-medium mb-1">Зріст (см)</label>
+            <input asp-for="Height" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" type="number" step="0.1" required />
+            <span asp-validation-for="Height" class="text-red-600 text-sm"></span>
+        </div>
+        <div class="text-center mt-6">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">Зберегти</button>
+        </div>
+    </form>
+</div>

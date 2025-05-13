@@ -1,41 +1,51 @@
 ﻿@model List<BLL.Models.ExerciseRecordViewModel>
 
 @{
-    ViewData["Title"] = "Friend's Exercise Records";
+    ViewData["Title"] = "Рекорди вправ друга";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>@ViewBag.FriendName Рекорди </h2>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-<div class="card mt-4">
-    <div class="card-body">
-        <h5 class="card-title">Рекорди вправ</h5>
-        <hr />
-        @if (Model != null && Model.Any())
-        {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Вправа</th>
-                        <th>Максимальна вага</th>
-                        <th>Максимальна кількість повторень</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var record in Model)
-                    {
-                        <tr>
-                            <td>@record.ExerciseName</td>
-                            <td>@record.MaxWeight кг</td>
-                            <td>@record.MaxReps</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <p class="text-center">Рекорди відсутні. Count: @Model?.Count ?? 0</p>
-        }
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Рекорди вправ @ViewBag.FriendName</h2>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+            <h5 class="text-lg font-semibold text-gray-700 mb-4">Рекорди вправ</h5>
+            <hr class="mb-4">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-sm">
+                                <th class="px-4 py-3">Вправа</th>
+                                <th class="px-4 py-3">Максимальна вага</th>
+                                <th class="px-4 py-3">Максимальна кількість повторень</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach (var record in Model)
+                            {
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="px-4 py-3 text-gray-700">@record.ExerciseName</td>
+                                    <td class="px-4 py-3 text-gray-700">@record.MaxWeight кг</td>
+                                    <td class="px-4 py-3 text-gray-700">@record.MaxReps</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="bg-blue-100 text-blue-800 p-4 rounded-md text-center">
+                    Рекорди відсутні
+                </div>
+            }
+        </div>
     </div>
 </div>

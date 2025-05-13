@@ -1,64 +1,58 @@
 ﻿@model PL.Controllers.RegisterViewModel
 
 @{
-    ViewBag.Title = "Реєстрація нового адміністратора";
+    ViewData["Title"] = "Реєстрація нового адміністратора";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container">
-    <h2>Реєстрація нового адміністратора</h2>
-
-    <form asp-action="RegisterAdmin" method="post" class="register-form">
-        <div class="form-group">
-            <label asp-for="UserName">Ім'я користувача</label>
-            <input asp-for="UserName" class="form-control" required />
-            <span asp-validation-for="UserName" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="Email">Email</label>
-            <input asp-for="Email" class="form-control" required />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="Password">Пароль</label>
-            <input asp-for="Password" class="form-control" type="password" required />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="ConfirmPassword">Підтвердження пароля</label>
-            <input asp-for="ConfirmPassword" class="form-control" type="password" required />
-            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-        </div>
-
-        <button type="submit" class="btn btn-primary mt-3">Зареєструвати</button>
-        <a asp-action="HomeAdmin" class="btn btn-secondary mt-3">Назад до адмін-панелі</a>
-    </form>
-</div>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
 <style>
-    .register-form {
-        max-width: 500px;
-        margin: 20px auto;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .btn-primary, .btn-secondary {
-        width: fit-content;
-    }
-
     header, footer {
         display: none;
     }
 </style>
+
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Реєстрація нового адміністратора</h2>
+
+    <!-- Registration Form -->
+    <form asp-action="RegisterAdmin" method="post" class="bg-white shadow-md rounded-lg p-6">
+        <div class="mb-4">
+            <label asp-for="UserName" class="block text-gray-700 font-medium mb-2">Ім'я користувача</label>
+            <input asp-for="UserName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <span asp-validation-for="UserName" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Email" class="block text-gray-700 font-medium mb-2">Email</label>
+            <input asp-for="Email" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <span asp-validation-for="Email" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Password" class="block text-gray-700 font-medium mb-2">Пароль</label>
+            <input asp-for="Password" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <span asp-validation-for="Password" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="mb-6">
+            <label asp-for="ConfirmPassword" class="block text-gray-700 font-medium mb-2">Підтвердження пароля</label>
+            <input asp-for="ConfirmPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <span asp-validation-for="ConfirmPassword" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
+                Зареєструвати
+            </button>
+            <a asp-action="HomeAdmin" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition text-center">
+                Назад до адмін-панелі
+            </a>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

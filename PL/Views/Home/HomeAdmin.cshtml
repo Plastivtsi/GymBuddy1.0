@@ -1,86 +1,90 @@
 ﻿@model List<PL.Controllers.UserViewModel>
 
 @{
-    ViewBag.Title = "Адмін панель";
+    ViewData["Title"] = "Адмін панель";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container">
-    <h2>Вітаємо в адмін-панелі, @ViewBag.UserName!</h2>
-
-    <div class="admin-options">
-        <a asp-action="RegisterAdmin" class="btn btn-primary">Зареєструвати нового адміністратора</a>
-    </div>
-
-    <h3>Список користувачів</h3>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Ім'я користувача</th>
-                <th>Email</th>
-                <th>Статус</th>
-                <th>Причина блокування</th>
-                <th>Дії</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in Model)
-            {
-                <tr>
-                    <td>@user.UserName</td>
-                    <td>@user.Email</td>
-                    <td>
-                        @(user.IsBlocked ? "Заблокований" : (user.IsAdmin ? "Адміністратор" : "Користувач"))
-                    </td>
-                    <td>@user.BlockedReason</td>
-                    <td>
-                        @if (!user.IsBlocked && !user.IsAdmin)
-                        {
-                            <form asp-action="BlockUser" method="post" class="block-form">
-                                <input type="hidden" name="userId" value="@user.Id" />
-                                <input type="text" name="blockedReason" placeholder="Причина блокування" required class="form-control" />
-                                <button type="submit" class="btn btn-danger mt-2">Заблокувати</button>
-                            </form>
-                        }
-                        else if (user.IsBlocked)
-                        {
-                            <form asp-action="UnblockUser" method="post" class="block-form">
-                                <input type="hidden" name="userId" value="@user.Id" />
-                                <button type="submit" class="btn btn-success mt-2">Розблокувати</button>
-                            </form>
-                        }
-                        else if (user.IsAdmin)
-                        {
-                            <span>Адміністратор</span>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">Вийти</a>
-</div>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
 <style>
-    .admin-options {
-        margin: 20px 0;
-    }
-
-    .btn-danger, .btn-success {
-        margin-top: 20px;
-    }
-
-    .table {
-        margin-top: 20px;
-    }
-
-    .block-form {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
     header, footer {
         display: none;
     }
 </style>
+
+<div class="container mx-auto px-4 py-8 max-w-5xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Вітаємо в адмін-панелі, @ViewBag.UserName!</h2>
+
+    <!-- Admin Options -->
+    <div class="mb-8">
+        <a asp-action="RegisterAdmin" class="inline-block bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
+            Зареєструвати нового адміністратора
+        </a>
+    </div>
+
+    <!-- Users List -->
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Список користувачів</h3>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full table-auto">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-600 font-medium">Ім'я користувача</th>
+                        <th class="px-4 py-3 text-left text-gray-600 font-medium">Email</th>
+                        <th class="px-4 py-3 text-left text-gray-600 font-medium">Статус</th>
+                        <th class="px-4 py-3 text-left text-gray-600 font-medium">Причина блокування</th>
+                        <th class="px-4 py-3 text-left text-gray-600 font-medium">Дії</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach (var user in Model)
+                    {
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-4 py-3 text-gray-700">@user.UserName</td>
+                            <td class="px-4 py-3 text-gray-700">@user.Email</td>
+                            <td class="px-4 py-3 text-gray-700">
+                                @(user.IsBlocked ? "Заблокований" : (user.IsAdmin ? "Адміністратор" : "Користувач"))
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">@user.BlockedReason</td>
+                            <td class="px-4 py-3">
+                                @if (!user.IsBlocked && !user.IsAdmin)
+                                {
+                                    <form asp-action="BlockUser" method="post" class="flex flex-col gap-2">
+                                        <input type="hidden" name="userId" value="@user.Id" />
+                                        <input type="text" name="blockedReason" placeholder="Причина блокування" required
+                                               class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition">
+                                            Заблокувати
+                                        </button>
+                                    </form>
+                                }
+                                else if (user.IsBlocked)
+                                {
+                                    <form asp-action="UnblockUser" method="post">
+                                        <input type="hidden" name="userId" value="@user.Id" />
+                                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">
+                                            Розблокувати
+                                        </button>
+                                    </form>
+                                }
+                                else if (user.IsAdmin)
+                                {
+                                    <span class="text-gray-600">Адміністратор</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="mt-8">
+        <a asp-controller="Account" asp-action="Logout" class="inline-block bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition">
+            Вийти
+        </a>
+    </div>
+</div>

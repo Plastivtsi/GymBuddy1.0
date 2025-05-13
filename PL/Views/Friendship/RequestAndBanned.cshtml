@@ -7,48 +7,71 @@
     var bannedUsers = Model.Item2;
 }
 
-<h2>Запити у друзі</h2>
-@if (friendshipRequests.Any())
-{
-    <ul>
-        @foreach (var user in friendshipRequests)
-        {
-            <li>
-                @user.UserName (@user.Email)
-                <form method="post" action="/Friendship/AcceptRequest" style="display:inline;">
-                    <input type="hidden" name="friendId" value="@user.Id" />
-                    <button type="submit">Прийняти</button>
-                </form>
-                <form method="post" action="/Friendship/BlockUser" style="display:inline;">
-                    <input type="hidden" name="friendId" value="@user.Id" />
-                    <button type="submit">Заблокувати</button>
-                </form>
-            </li>
-        }
-    </ul>
-}
-else
-{
-    <p>Немає нових запитів у друзі.</p>
-}
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-<h2>Заблоковані користувачі</h2>
-@if (bannedUsers.Any())
-{
-    <ul>
-        @foreach (var user in bannedUsers)
-        {
-            <li>
-                @user.UserName (@user.Email)
-                <form method="post" action="/Friendship/UnblockUser">
-                    <input type="hidden" name="friendId" value="@user.Id" />
-                    <button type="submit">Розблокувати</button>
-                </form>
-            </li>
-        }
-    </ul>
-}
-else
-{
-    <p>Немає заблокованих користувачів.</p>
-}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <!-- Friend Requests Section -->
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Запити у друзі</h2>
+    @if (friendshipRequests.Any())
+    {
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <ul class="divide-y divide-gray-200">
+                @foreach (var user in friendshipRequests)
+                {
+                    <li class="p-4 flex justify-between items-center hover:bg-gray-50">
+                        <div class="text-gray-700">
+                            <span class="font-medium">@user.UserName</span> (@user.Email)
+                        </div>
+                        <div class="flex space-x-3">
+                            <form method="post" action="/Friendship/AcceptRequest">
+                                <input type="hidden" name="friendId" value="@user.Id" />
+                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">
+                                    Прийняти
+                                </button>
+                            </form>
+                            <form method="post" action="/Friendship/BlockUser">
+                                <input type="hidden" name="friendId" value="@user.Id" />
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition">
+                                    Заблокувати
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <p class="text-gray-600 bg-gray-100 p-4 rounded-md">Немає нових запитів у друзі.</p>
+    }
+
+    <!-- Blocked Users Section -->
+    <h2 class="text-2xl font-bold text-gray-800 mt-12 mb-6">Заблоковані користувачі</h2>
+    @if (bannedUsers.Any())
+    {
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <ul class="divide-y divide-gray-200">
+                @foreach (var user in bannedUsers)
+                {
+                    <li class="p-4 flex justify-between items-center hover:bg-gray-50">
+                        <div class="text-gray-700">
+                            <span class="font-medium">@user.UserName</span> (@user.Email)
+                        </div>
+                        <form method="post" action="/Friendship/UnblockUser">
+                            <input type="hidden" name="friendId" value="@user.Id" />
+                            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                                Розблокувати
+                            </button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <p class="text-gray-600 bg-gray-100 p-4 rounded-md">Немає заблокованих користувачів.</p>
+    }
+</div>

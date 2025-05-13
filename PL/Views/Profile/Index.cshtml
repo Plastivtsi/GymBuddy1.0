@@ -6,53 +6,60 @@
     var exerciseRecords = ViewData["ExerciseRecords"] as List<object>;
 }
 
-<div class="container mt-5">
-    <h2 class="text-center">Ваш профіль</h2>
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Інформація</h5>
-            <hr />
-            <dl class="row">
-                <dt class="col-sm-3">Ім'я:</dt>
-                <dd class="col-sm-9">@Model.UserName</dd>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-                <dt class="col-sm-3">Email:</dt>
-                <dd class="col-sm-9">@Model.Email</dd>
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Ваш профіль</h2>
 
-                <dt class="col-sm-3">Вага:</dt>
-                <dd class="col-sm-9">@Model.Weight</dd>
+    <!-- Profile Information -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
+        <div class="p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Інформація</h3>
+            <hr class="border-gray-200 mb-4">
+            <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <dt class="text-sm font-medium text-gray-600">Ім'я:</dt>
+                <dd class="text-sm text-gray-700 sm:col-span-2">@Model.UserName</dd>
 
-                <dt class="col-sm-3">Зріст:</dt>
-                <dd class="col-sm-9">@Model.Height</dd>
+                <dt class="text-sm font-medium text-gray-600">Email:</dt>
+                <dd class="text-sm text-gray-700 sm:col-span-2">@Model.Email</dd>
+
+                <dt class="text-sm font-medium text-gray-600">Вага:</dt>
+                <dd class="text-sm text-gray-700 sm:col-span-2">@Model.Weight</dd>
+
+                <dt class="text-sm font-medium text-gray-600">Зріст:</dt>
+                <dd class="text-sm text-gray-700 sm:col-span-2">@Model.Height</dd>
             </dl>
-            <div class="text-center mt-4">
-                <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">Редагувати профіль</a>
+            <div class="text-center mt-6">
+                <a href="@Url.Action("Edit", "Profile")" class="inline-block bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
+                    Редагувати профіль
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Секція для рекордів вправ -->
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Рекорди вправ</h5>
-            <hr />
+    <!-- Exercise Records -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Рекорди вправ</h3>
+            <hr class="border-gray-200 mb-4">
             @if (exerciseRecords != null && exerciseRecords.Any())
             {
-                <table class="table table-striped">
-                    <thead>
+                <table class="w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th>Вправа</th>
-                            <th>Максимальна вага</th>
-                            <th>Максимальна кількість повторень</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Вправа</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Максимальна вага</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Максимальна кількість повторень</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-200">
                         @foreach (var record in exerciseRecords)
                         {
-                            <tr>
-                                <td>@((record as dynamic).ExerciseName)</td>
-                                <td>@((record as dynamic).MaxWeight) кг</td>
-                                <td>@((record as dynamic).MaxReps)</td>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 text-sm text-gray-700">@((record as dynamic).ExerciseName)</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">@((record as dynamic).MaxWeight) кг</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">@((record as dynamic).MaxReps)</td>
                             </tr>
                         }
                     </tbody>
@@ -60,7 +67,9 @@
             }
             else
             {
-                <p class="text-center">Рекорди відсутні.</p>
+                <div class="bg-blue-100 text-blue-800 p-4 rounded-md text-center">
+                    Рекорди відсутні.
+                </div>
             }
         </div>
     </div>

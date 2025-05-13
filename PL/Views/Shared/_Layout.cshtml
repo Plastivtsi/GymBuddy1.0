@@ -12,44 +12,48 @@
     @if (!string.IsNullOrEmpty(ViewBag.Title) && ViewBag.Title != "Вхід" && ViewBag.Title != "Реєстрація")
     {
         <header>
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
                 <div class="container-fluid">
-              
-                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                        <ul class="navbar-nav flex-grow-1">
-                            <ul class="navbar-nav me-auto">
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Головна</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Friendship" asp-action="Index">Друзі</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Friendship" asp-action="RequestAndBanned">Запити</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Training" asp-action="Index">Тренування</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="TrainingCalendar" asp-action="Index">Календар</a>
-                                </li>
-                                
-                            </ul>
-                            <ul class="navbar-nav ms-auto">
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Profile" asp-action="Index"> @User.Identity.Name</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-danger" asp-area="" asp-controller="Account" asp-action="Logout">Вихід</a>
-                                </li>
-                            </ul>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                            
+                    <div class="collapse navbar-collapse" id="mainNavbar">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Головна</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Friendship" asp-action="Index">Друзі</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Friendship" asp-action="RequestAndBanned">Запити</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Training" asp-action="Index">Тренування</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="TrainingCalendar" asp-action="Index">Календар</a>
+                            </li>
+                        </ul>
+
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Index">
+                                    <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" asp-area="" asp-controller="Account" asp-action="Logout">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Вихід
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </nav>
         </header>
+
     }
 
     <div class="container">

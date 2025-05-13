@@ -10,163 +10,170 @@
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
             };
 
-    // Перевірте, чи в Model.MonthlyTrainingCounts є правильні дані
     var json = JsonSerializer.Serialize(Model.MonthlyTrainingCounts, options);
-
-    // Логування даних на сервері для перевірки
     Console.WriteLine("Serialized MonthlyTrainingCounts: " + json);
 }
 
-<h2>Календар тренувань</h2>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-@if (Model.Trainings != null && Model.Trainings.Any())
-{
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Дата</th>
-                    <th>Назва</th>
-                    <th>Опис</th>
-                    <th>Вправи</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var training in Model.Trainings)
-            {
-                    <tr>
-                        <td>@training.Date?.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@training.Name</td>
-                        <td>@training.Description</td>
-                        <td>
-                        @if (training.Exercises != null && training.Exercises.Any())
-                        {
-                                    <ul>
-                                @foreach (var exercise in training.Exercises)
-                                {
-                                                <li>@exercise.Name - @exercise.Repetitions reps, @exercise.Weight kg</li>
-                                }
-                                    </ul>
-                        }
-                        else
-                        {
-                                    <span>Немає вправ</span>
-                        }
-                        </td>
-                    </tr>
-            }
-            </tbody>
-        </table>
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Календар тренувань</h2>
 
-        <h3>Загальний прогрес</h3>
-
-    @if (Model.MonthlyTrainingCounts != null)
+    @if (Model.Trainings != null && Model.Trainings.Any())
     {
+        <!-- Trainings Table -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
+            <table class="w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Дата</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Назва</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Опис</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Вправи</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach (var training in Model.Trainings)
+                    {
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-4 py-3 text-sm text-gray-700">@training.Date?.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">@training.Name</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">@training.Description</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">
+                                @if (training.Exercises != null && training.Exercises.Any())
+                                {
+                                    <ul class="list-disc pl-5">
+                                        @foreach (var exercise in training.Exercises)
+                                        {
+                                            <li>@exercise.Name - @exercise.Repetitions reps, @exercise.Weight kg</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span>Немає вправ</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
+        <!-- Progress Chart -->
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Загальний прогрес</h3>
+
+        @if (Model.MonthlyTrainingCounts != null)
+        {
+            <div class="bg-white shadow-md rounded-lg p-4 mb-8">
                 <canvas id="monthlyProgressChart" width="400" height="200"></canvas>
+            </div>
 
-                <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    if (typeof Chart === 'undefined') {
+                        console.error('Chart.js не завантажено.');
+                        const chartContainer = document.getElementById('monthlyProgressChart');
+                        chartContainer.style.display = 'none';
+                        const errorMessage = document.createElement('div');
+                        errorMessage.className = 'bg-red-100 text-red-800 p-4 rounded-md';
+                        errorMessage.textContent = 'Помилка: Не вдалося завантажити Chart.js.';
+                        chartContainer.parentNode.insertBefore(errorMessage, chartContainer);
+                        return;
+                    }
 
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        // Перевірка, чи Chart.js завантажено
-                        if (typeof Chart === 'undefined') {
-                            console.error('Chart.js не завантажено.');
-                            const chartContainer = document.getElementById('monthlyProgressChart');
-                            chartContainer.style.display = 'none';
-                            const errorMessage = document.createElement('div');
-                            errorMessage.className = 'alert alert-danger';
-                            errorMessage.textContent = 'Помилка: Не вдалося завантажити Chart.js.';
-                            chartContainer.parentNode.insertBefore(errorMessage, chartContainer);
-                            return;
+                    const monthlyCounts = @Html.Raw(json);
+                    console.log(monthlyCounts);
+
+                    const currentYear = @Model.CurrentYear;
+                    const previousYear = currentYear - 1;
+
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const currentYearData = [];
+                    const previousYearData = [];
+
+                    for (let month = 1; month <= 12; month++) {
+                        if (monthlyCounts[month]) {
+                            currentYearData.push(monthlyCounts[month].currentYearCount || 0);
+                            previousYearData.push(monthlyCounts[month].previousYearCount || 0);
+                        } else {
+                            currentYearData.push(0);
+                            previousYearData.push(0);
                         }
+                    }
 
-                        // Перевірка даних monthlyCounts
-                        const monthlyCounts = @Html.Raw(json);
-                        console.log(monthlyCounts); // Перевірка структури даних у консолі
-
-                        const currentYear = @Model.CurrentYear;
-                        const previousYear = currentYear - 1;
-
-                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                        const currentYearData = [];
-                        const previousYearData = [];
-
-                        // Заповнення масивів для графіку
-                        for (let month = 1; month <= 12; month++) {
-                            if (monthlyCounts[month]) {
-                                currentYearData.push(monthlyCounts[month].currentYearCount || 0);
-                                previousYearData.push(monthlyCounts[month].previousYearCount || 0);
-                            } else {
-                                currentYearData.push(0);
-                                previousYearData.push(0);
-                            }
-                        }
-
-                        // Створення графіку
-                        const ctx = document.getElementById('monthlyProgressChart').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: months,
-                                datasets: [
-                                    {
-                                        label: currentYear,
-                                        data: currentYearData,
-                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                                        borderColor: 'rgba(54, 162, 235, 1)',
-                                        borderWidth: 1
-                                    },
-                                    {
-                                        label: previousYear,
-                                        data: previousYearData,
-                                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                                        borderColor: 'rgba(75, 192, 192, 1)',
-                                        borderWidth: 1
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        title: {
-                                            display: true,
-                                            text: 'Кількість тренувань'
-                                        }
-                                    },
-                                    x: {
-                                        title: {
-                                            display: true,
-                                            text: 'Місяць'
-                                        }
-                                    }
+                    const ctx = document.getElementById('monthlyProgressChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: months,
+                            datasets: [
+                                {
+                                    label: currentYear,
+                                    data: currentYearData,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
                                 },
-                                plugins: {
-                                    legend: {
-                                        display: true,
-                                        position: 'top'
-                                    },
+                                {
+                                    label: previousYear,
+                                    data: previousYearData,
+                                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Загальний прогрес'
+                                        text: 'Кількість тренувань'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Місяць'
                                     }
                                 }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Загальний прогрес'
+                                }
                             }
-                        });
+                        }
                     });
-                </script>
+                });
+            </script>
+        }
+        else
+        {
+            <div class="bg-yellow-100 text-yellow-800 p-4 rounded-md mb-8">
+                Дані для гістограми відсутні!
+            </div>
+        }
     }
     else
     {
-                <div class="alert alert-warning" role="alert">
-                    Дані для гістограми відсутні!
-                </div>
+        <div class="bg-blue-100 text-blue-800 p-4 rounded-md mb-8">
+            Тренувань за вибраний період не знайдено.
+        </div>
     }
-}
-else
-{
-        <p>No trainings found for the selected date range.</p>
-}
 
-<a asp-action="Index">Back to Search</a>
+    <!-- Back Link -->
+    <a asp-action="Index" class="inline-block bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
+        Назад до пошуку
+    </a>
+</div>

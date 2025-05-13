@@ -5,44 +5,57 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Список друзів</h2>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-    <form method="get" action="@Url.Action("Search", "Friendship")" class="mb-4 row g-2">
-        <div class="col-sm-8">
-            <input type="text" name="name" class="form-control" placeholder="Пошук друга за ім'ям" />
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Список друзів</h2>
+
+    <!-- Search Form -->
+    <form method="get" action="@Url.Action("Search", "Friendship")" class="mb-8 flex flex-col sm:flex-row gap-3">
+        <div class="flex-1">
+            <input type="text" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Пошук друга за ім'ям" />
         </div>
-        <div class="col-sm-4">
-            <button type="submit" class="btn btn-primary w-100">Пошук</button>
-        </div>
+        <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition sm:w-auto w-full">
+            Пошук
+        </button>
     </form>
 
+    <!-- Friends List -->
     @if (!Model.Any())
     {
-        <div class="alert alert-info">У вас немає друзів</div>
+        <div class="bg-blue-100 text-blue-800 p-4 rounded-md">
+            У вас немає друзів
+        </div>
     }
     else
     {
-        <div class="list-group">
-            @foreach (var friend in Model)
-            {
-                <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                    <div>
-                        <strong>@friend.UserName</strong> <span class="text-muted">(@friend.Email)</span>
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="divide-y divide-gray-200">
+                @foreach (var friend in Model)
+                {
+                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-gray-50 transition">
+                        <div class="text-gray-700 mb-3 sm:mb-0">
+                            <span class="font-medium">@friend.UserName</span> <span class="text-gray-500">(@friend.Email)</span>
+                        </div>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <form method="post" action="@Url.Action("Unfollow", "Friendship")" class="m-0 w-full sm:w-auto">
+                                <input type="hidden" name="friendId" value="@friend.Id" />
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition text-center w-full sm:w-auto">
+                                    Відписатись
+                                </button>
+                            </form>
+                            <a href="@Url.Action("ViewFriendRecords", "Friendship", new { friendId = friend.Id })"
+                               class="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 transition text-center w-full sm:w-auto flex items-center justify-center">
+                                Рекорди
+                            </a>
+
+
+
+                        </div>
                     </div>
-                    <div class="d-flex gap-2 mt-2 mt-sm-0">
-                        <form method="post" action="@Url.Action("Unfollow", "Friendship")" class="m-0">
-                            <input type="hidden" name="friendId" value="@friend.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">Відписатись</button>
-                        </form>
-                        <a href="@Url.Action("ViewFriendRecords", "Friendship", new { friendId = friend.Id })"
-                           class="btn btn-outline-primary btn-sm"
-                           target="_blank">
-                            Рекорди
-                        </a>
-                    </div>
-                </div>
-            }
+                }
+            </div>
         </div>
     }
 </div>

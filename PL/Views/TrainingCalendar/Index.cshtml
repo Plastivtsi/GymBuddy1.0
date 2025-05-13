@@ -1,26 +1,34 @@
 @{
     ViewData["Title"] = "Календар";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
 }
 
-<h2>Календар тренувань</h2>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-<form asp-action="GetTrainingsByDateRange" method="post">
-    <div class="form-group">
-        <label for="startDate">Початкова дата:</label>
-        <input type="date" id="startDate" name="startDate" class="form-control" required />
-    </div>
-    <div class="form-group">
-        <label for="endDate">Кінцева дата:</label>
-        <input type="date" id="endDate" name="endDate" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Показати тренування</button>
-</form>
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Календар тренувань</h2>
 
-@if (ViewBag.ErrorMessage != null)
-{
-    <div class="alert alert-danger">
-        @ViewBag.ErrorMessage
-    </div>
-}
+    <!-- Training Date Range Form -->
+    <form asp-action="GetTrainingsByDateRange" method="post" class="mb-8 flex flex-col gap-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1">
+                <label for="startDate" class="block text-gray-700 font-medium mb-1">Початкова дата:</label>
+                <input type="date" id="startDate" name="startDate" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <div class="flex-1">
+                <label for="endDate" class="block text-gray-700 font-medium mb-1">Кінцева дата:</label>
+                <input type="date" id="endDate" name="endDate" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            </div>
+        </div>
+        <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition w-full sm:w-auto">Показати тренування</button>
+    </form>
+
+    <!-- Error Message -->
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="bg-red-100 text-red-800 p-4 rounded-md">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+</div>

@@ -1,27 +1,53 @@
 ﻿@{
-    ViewBag.Title = "Реєстрація";
+    ViewData["Title"] = "Реєстрація";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-center">
-    <h2>Реєстрація</h2>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Реєстрація</h2>
+
+    <!-- Error Message -->
     @if (ViewBag.Error != null)
     {
-        <p style="color:red">@ViewBag.Error</p>
+        <div class="bg-red-100 text-red-800 p-4 rounded-md mb-6">
+            @ViewBag.Error
+        </div>
     }
 
-    <form method="post" asp-controller="Account" asp-action="Register">
-        <label for="nickname">Ім'я:</label>
-        <input type="text" id="nickname" name="nickname" required />
+    <!-- Registration Form -->
+    <form method="post" asp-controller="Account" asp-action="Register" class="bg-white shadow-md rounded-lg p-6">
+        <div class="mb-4">
+            <label for="nickname" class="block text-gray-700 font-medium mb-2">Ім'я:</label>
+            <input type="text" id="nickname" name="nickname" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required />
+        <div class="mb-4">
+            <label for="email" class="block text-gray-700 font-medium mb-2">Email:</label>
+            <input type="email" id="email" name="email" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
 
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" required />
+        <div class="mb-6">
+            <label for="password" class="block text-gray-700 font-medium mb-2">Пароль:</label>
+            <input type="password" id="password" name="password" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
 
-        <input type="submit" value="Зареєструватися" />
+        <button type="submit"
+                class="w-full bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
+            Зареєструватися
+        </button>
     </form>
 
-    <p>Вже маєте акаунт? <a href="@Url.Action("Login", "Account")">Увійдіть тут</a></p>
+    <!-- Login Link -->
+    <div class="mt-6 text-center">
+        <p class="text-gray-600">
+            Вже маєте акаунт?
+            <a href="@Url.Action("Login", "Account")" class="text-blue-500 hover:text-blue-600 font-medium">Увійдіть тут</a>
+        </p>
+    </div>
 </div>
