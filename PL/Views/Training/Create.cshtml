@@ -5,242 +5,136 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    /* Загальні стилі для контейнера */
-    .training-form {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-    }
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-        /* Заголовок */
-        .training-form h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Створити шаблонне тренування</h1>
 
-    /* Стилі для груп полів */
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .form-group textarea {
-            height: 100px;
-            resize: vertical;
-        }
-
-        .form-group .text-danger {
-            color: red;
-            font-size: 12px;
-        }
-
-    /* Стилі для вправ */
-    .exercise-row {
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 15px;
-        background-color: #f9f9f9;
-    }
-
-    /* Перший ряд: Назва і Нотатки */
-    .exercise-row-first {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-    }
-
-        .exercise-row-first > div {
-            width: 48%;
-        }
-
-    /* Другий ряд: Вага, Повторення, Кнопка Видалити */
-    .exercise-row-second {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-
-        .exercise-row-second > div {
-            width: 30%;
-        }
-
-    /* Стилі для полів введення у вправі */
-    .exercise-row input[type="text"],
-    .exercise-row input[type="number"] {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-
-    /* Стилі для кнопок */
-    .exercise-row button,
-    .form-group button,
-    .form-group a {
-        padding: 8px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        text-align: center;
-    }
-
-    .add-exercise-btn {
-        background-color: #6c757d;
-        color: white;
-        margin-bottom: 15px;
-    }
-
-    .remove-exercise-btn {
-        background-color: #dc3545;
-        color: white;
-        width: 100%;
-    }
-
-    .submit-btn {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .back-btn {
-        background-color: #6c757d;
-        color: white;
-        margin-left: 10px;
-    }
-
-   
-</style>
-
-<div class="training-form">
-    <h1>Створити шаблонне тренування</h1>
-
-    <form asp-action="Create" asp-controller="TrainingCreation" method="post">
-        <!-- Назва тренування -->
-        <div class="form-group">
-            <label asp-for="Name">Назва тренування</label>
-            <input asp-for="Name" required />
-            <span asp-validation-for="Name" class="text-danger"></span>
-        </div>
-
-        <!-- Опис тренування -->
-        <div class="form-group">
-            <label asp-for="Description">Опис</label>
-            <textarea asp-for="Description"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        <!-- Приховане поле для Template (завжди true) -->
+    <!-- Training Form -->
+    <form asp-action="Create" asp-controller="TrainingCreation" method="post" class="bg-white shadow-md rounded-lg p-6">
         <input type="hidden" asp-for="Template" value="true" />
 
-        <!-- Список вправ -->
-        <div class="form-group">
-            <h4>Вправи</h4>
-            <div id="exercises-container">
-                @if (Model.Exercises != null && Model.Exercises.Any())
-                {
-                    @for (int i = 0; i < Model.Exercises.Count; i++)
-                    {
-                        <div class="exercise-row">
-                            <input type="hidden" asp-for="Exercises[i].Id" />
-                            <!-- Перший ряд: Назва і Нотатки -->
-                            <div class="exercise-row-first">
-                                <div>
-                                    <label asp-for="Exercises[i].Name">Назва вправи</label>
-                                    <input asp-for="Exercises[i].Name" required />
-                                    <span asp-validation-for="Exercises[i].Name" class="text-danger"></span>
-                                </div>
-                                <div>
-                                    <label asp-for="Exercises[i].Notes">Нотатки</label>
-                                    <input asp-for="Exercises[i].Notes" />
-                                    <span asp-validation-for="Exercises[i].Notes" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <!-- Другий ряд: Вага, Повторення, Кнопка Видалити -->
-                            <div class="exercise-row-second">
-                                <div>
-                                    <label asp-for="Exercises[i].Weight">Вага (кг)</label>
-                                    <input asp-for="Exercises[i].Weight" type="number" step="0.1" min="0" required />
-                                    <span asp-validation-for="Exercises[i].Weight" class="text-danger"></span>
-                                </div>
-                                <div>
-                                    <label asp-for="Exercises[i].Repetitions">Повторення</label>
-                                    <input asp-for="Exercises[i].Repetitions" type="number" step="1" min="0" required />
-                                    <span asp-validation-for="Exercises[i].Repetitions" class="text-danger"></span>
-                                </div>
-                                <div>
-                                    <button type="button" class="remove-exercise-btn">Видалити</button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-            </div>
-            <button type="button" id="add-exercise" class="add-exercise-btn">Додати вправу</button>
+        <!-- Name Field -->
+        <div class="mb-4">
+            <label asp-for="Name" class="block text-gray-700 font-medium mb-2">Назва тренування</label>
+            <input asp-for="Name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
         </div>
 
-        <!-- Кнопки -->
-        <button type="submit" class="submit-btn">Створити</button>
-        <a href="@Url.Action("Index", "Training")" class="back-btn">Назад</a>
+        <!-- Description Field -->
+        <div class="mb-4">
+            <label asp-for="Description" class="block text-gray-700 font-medium mb-2">Опис</label>
+            <textarea asp-for="Description" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <span asp-validation-for="Description" class="text-red-500 text-sm"></span>
+        </div>
+
+        <!-- Exercises Section -->
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Вправи</h3>
+        <div id="exercises-container" class="mb-6">
+            @if (Model?.Exercises != null && Model.Exercises.Any())
+            {
+                @for (int i = 0; i < Model.Exercises.Count; i++)
+                {
+                    <div class="exercise-row bg-gray-50 p-4 rounded-md mb-3 shadow-sm">
+                        <input type="hidden" asp-for="Exercises[i].Id" />
+
+                        <!-- First Row: Name and Notes -->
+                        <div class="flex flex-col sm:flex-row sm:gap-4 mb-3">
+                            <div class="flex-1">
+                                <label asp-for="Exercises[i].Name" class="block text-gray-700 font-medium mb-2">Назва вправи</label>
+                                <input asp-for="Exercises[i].Name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <span asp-validation-for="Exercises[i].Name" class="text-red-500 text-sm"></span>
+                            </div>
+                            <div class="flex-1">
+                                <label asp-for="Exercises[i].Notes" class="block text-gray-700 font-medium mb-2">Нотатки</label>
+                                <input asp-for="Exercises[i].Notes" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <span asp-validation-for="Exercises[i].Notes" class="text-red-500 text-sm"></span>
+                            </div>
+                        </div>
+
+                        <!-- Second Row: Weight, Repetitions, Remove Button -->
+                        <div class="flex flex-col sm:flex-row sm:gap-4 items-end">
+                            <div class="flex-1 mb-3 sm:mb-0">
+                                <label asp-for="Exercises[i].Weight" class="block text-gray-700 font-medium mb-2">Вага (кг)</label>
+                                <input asp-for="Exercises[i].Weight" type="number" step="0.1" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <span asp-validation-for="Exercises[i].Weight" class="text-red-500 text-sm"></span>
+                            </div>
+                            <div class="flex-1 mb-3 sm:mb-0">
+                                <label asp-for="Exercises[i].Repetitions" class="block text-gray-700 font-medium mb-2">Повторення</label>
+                                <input asp-for="Exercises[i].Repetitions" type="number" step="1" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <span asp-validation-for="Exercises[i].Repetitions" class="text-red-500 text-sm"></span>
+                            </div>
+                            <div class="w-full sm:w-auto">
+                                <button type="button" class="remove-exercise-btn bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition w-full">Видалити</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="bg-blue-100 text-blue-800 p-4 rounded-md">
+                    Немає вправ. Додайте нові вправи нижче.
+                </div>
+            }
+        </div>
+
+        <!-- Add Exercise Button -->
+        <button type="button" id="add-exercise" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition mb-6">Додати вправу</button>
+
+        <!-- Form Actions -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition sm:w-auto w-full">Створити</button>
+            <a href="@Url.Action("Index", "Training")" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition text-center sm:w-auto w-full">Назад</a>
+        </div>
     </form>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
     <script>
         // Динамічне додавання вправ
-        let exerciseIndex = @(Model.Exercises != null ? Model.Exercises.Count : 0);
+        let exerciseIndex = @(Model?.Exercises != null ? Model.Exercises.Count : 0);
 
         document.getElementById('add-exercise').addEventListener('click', function () {
             const container = document.getElementById('exercises-container');
             const newExerciseHtml = `
-                <div class="exercise-row">
-                    <!-- Перший ряд: Назва і Нотатки -->
-                    <div class="exercise-row-first">
-                        <div>
-                            <label>Назва вправи</label>
-                            <input name="Exercises[${exerciseIndex}].Name" required />
+                <div class="exercise-row bg-gray-50 p-4 rounded-md mb-3 shadow-sm">
+                    <input type="hidden" name="Exercises[${exerciseIndex}].Id" value="0" />
+                    <div class="flex flex-col sm:flex-row sm:gap-4 mb-3">
+                        <div class="flex-1">
+                            <label for="Exercises_${exerciseIndex}__Name" class="block text-gray-700 font-medium mb-2">Назва вправи</label>
+                            <input name="Exercises[${exerciseIndex}].Name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                            <span class="text-red-500 text-sm field-validation-valid" data-valmsg-for="Exercises[${exerciseIndex}].Name" data-valmsg-replace="true"></span>
                         </div>
-                        <div>
-                            <label>Нотатки</label>
-                            <input name="Exercises[${exerciseIndex}].Notes" />
+                        <div class="flex-1">
+                            <label for="Exercises_${exerciseIndex}__Notes" class="block text-gray-700 font-medium mb-2">Нотатки</label>
+                            <input name="Exercises[${exerciseIndex}].Notes" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <span class="text-red-500 text-sm field-validation-valid" data-valmsg-for="Exercises[${exerciseIndex}].Notes" data-valmsg-replace="true"></span>
                         </div>
                     </div>
-                    <!-- Другий ряд: Вага, Повторення, Кнопка Видалити -->
-                    <div class="exercise-row-second">
-                        <div>
-                            <label>Вага (кг)</label>
-                            <input name="Exercises[${exerciseIndex}].Weight" type="number" step="0.1" min="0" required />
+                    <div class="flex flex-col sm:flex-row sm:gap-4 items-end">
+                        <div class="flex-1 mb-3 sm:mb-0">
+                            <label for="Exercises_${exerciseIndex}__Weight" class="block text-gray-700 font-medium mb-2">Вага (кг)</label>
+                            <input name="Exercises[${exerciseIndex}].Weight" type="number" step="0.1" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                            <span class="text-red-500 text-sm field-validation-valid" data-valmsg-for="Exercises[${exerciseIndex}].Weight" data-valmsg-replace="true"></span>
                         </div>
-                        <div>
-                            <label>Повторення</label>
-                            <input name="Exercises[${exerciseIndex}].Repetitions" type="number" step="1" min="0" required />
+                        <div class="flex-1 mb-3 sm:mb-0">
+                            <label for="Exercises_${exerciseIndex}__Repetitions" class="block text-gray-700 font-medium mb-2">Повторення</label>
+                            <input name="Exercises[${exerciseIndex}].Repetitions" type="number" step="1" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                            <span class="text-red-500 text-sm field-validation-valid" data-valmsg-for="Exercises[${exerciseIndex}].Repetitions" data-valmsg-replace="true"></span>
                         </div>
-                        <div>
-                            <button type="button" class="remove-exercise-btn">Видалити</button>
+                        <div class="w-full sm:w-auto">
+                            <button type="button" class="remove-exercise-btn bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition w-full">Видалити</button>
                         </div>
                     </div>
                 </div>`;
             container.insertAdjacentHTML('beforeend', newExerciseHtml);
             exerciseIndex++;
+            // Оновлення валідації для нових полів
+            $('form').removeData('validator').removeData('unobtrusiveValidation');
+            $.validator.unobtrusive.parse('form');
         });
 
         // Видалення вправ

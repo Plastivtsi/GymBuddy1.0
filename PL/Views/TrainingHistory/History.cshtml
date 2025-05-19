@@ -5,91 +5,67 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="text-center mt-4 mb-4">Історія тренувань</h2>
+<!-- Include Tailwind CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info text-center">
-        У вас ще немає тренувань.
-    </div>
-}
-else
-{
-    <table class="table table-bordered table-hover bg-white shadow-sm">
-        <thead class="table-light text-center">
-            <tr>
-                <th>Назва</th>
-                <th>Опис</th>
-                <th>Дата</th>
-                <th>Тривалість</th>
-                <th>Вправи</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var training in Model.OrderByDescending(t => t.Date))
-            {
-                <tr>
-                    <td class="align-middle fw-bold text-primary">
-                        @training.Name
-                    </td>
-                    <td class="align-middle">
-                        @(!string.IsNullOrWhiteSpace(training.Description)
-                            ? training.Description
-                            : "Без опису")
-                    </td>
-                    <td class="text-center align-middle">
-                        @(training.Date?.ToString("dd.MM.yyyy") ?? "Без дати")
-                    </td>
-                    <td class="text-center align-middle">
-                        @(training.Time.ToString(@"hh\:mm"))
-                    </td>
-                    <td>
-                        <ul class="list-unstyled mb-0">
-                            @foreach (var exercise in training.Exercises)
-                            {
-                                <li>
-                                    <strong>@exercise.Name</strong> —
-                                    @exercise.Weight кг,
-                                    @exercise.Repetitions повторень
-                                </li>
-                            }
-                        </ul>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="container mx-auto px-4 py-8 max-w-5xl">
+    <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Історія тренувань</h2>
 
-<style>
-   
-
-    body {
-        background-color: #f1f3f5;
-        font-family: "Segoe UI", sans-serif;
+    @if (!Model.Any())
+    {
+        <div class="bg-blue-100 text-blue-800 p-4 rounded-md text-center">
+            У вас ще немає тренувань.
+        </div>
     }
-
-    h2 {
-        color: #212529;
+    else
+    {
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-3 text-center text-gray-700 font-semibold">Назва</th>
+                            <th class="px-4 py-3 text-center text-gray-700 font-semibold">Опис</th>
+                            <th class="px-4 py-3 text-center text-gray-700 font-semibold">Дата</th>
+                            <th class="px-4 py-3 text-center text-gray-700 font-semibold">Тривалість</th>
+                            <th class="px-4 py-3 text-center text-gray-700 font-semibold">Вправи</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach (var training in Model.OrderByDescending(t => t.Date))
+                        {
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 text-center font-medium text-blue-600">
+                                    @training.Name
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @(!string.IsNullOrWhiteSpace(training.Description)
+                                        ? training.Description
+                                        : "Без опису")
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @(training.Date?.ToString("dd.MM.yyyy") ?? "Без дати")
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @(training.Time.ToString(@"hh\:mm"))
+                                </td>
+                                <td class="px-4 py-3">
+                                    <ul class="space-y-2">
+                                        @foreach (var exercise in training.Exercises)
+                                        {
+                                            <li class="pl-4 border-l-2 border-blue-500">
+                                                <span class="font-medium">@exercise.Name</span> —
+                                                @exercise.Weight кг,
+                                                @exercise.Repetitions повторень
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     }
-
-    table {
-        font-size: 1rem;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .table td, .table th {
-        vertical-align: middle;
-    }
-
-    ul li {
-        padding-left: 0.5rem;
-        border-left: 3px solid #0d6efd;
-        margin-bottom: 0.3rem;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-</style>
+</div>

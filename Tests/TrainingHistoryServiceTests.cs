@@ -6,18 +6,21 @@ using System.Threading.Tasks;
 using DAL.Models;
 using BLL.Service;
 using DAL.Repositorie;
+using Microsoft.Extensions.Logging;
 
 namespace Tests.ServicesTests
 {
     public class TrainingHistoryServiceTests
     {
         private readonly Mock<ITrainingRepository> _trainingRepositoryMock;
+        private readonly Mock<ILogger<TrainingService>> _loggerMock;
         private readonly TrainingService _trainingService;
 
         public TrainingHistoryServiceTests()
         {
             _trainingRepositoryMock = new Mock<ITrainingRepository>();
-            _trainingService = new TrainingService(_trainingRepositoryMock.Object);
+            _loggerMock = new Mock<ILogger<TrainingService>>();
+            _trainingService = new TrainingService(_trainingRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -49,17 +52,16 @@ namespace Tests.ServicesTests
                 }
             };
 
-            // Упевнимося, що метод GetTrainingsByUserIdAsync існує в ITrainingRepository
             _trainingRepositoryMock.Setup(repo => repo.GetTrainingsByUserId(userId))
-            .ReturnsAsync(trainings.ToList()); // .ToList() -> відповідність поверненню Task<List<Training>>
-
+                .ReturnsAsync(trainings);
 
             // Act
             var result = await _trainingService.GetUserTrainingHistoryAsync(userId);
 
             // Assert
-            Assert.Single(result); // Має залишитися тільки одне тренування
-            Assert.All(result, t => Assert.Contains(t.Exercises, e => e.Weight > 0));
+            Assert.Equal(1, result.Count); // Only one training has an exercise with Weight > 0
+            Assert.All(result, t => Assert.True(t.Exercises.Any(e => e.Weight > 0)));
+            Assert.Equal(1, result.First().Id); // Verify the correct training is returned
         }
     }
 }
